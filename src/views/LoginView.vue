@@ -67,7 +67,7 @@ const onFinish = async (values: FormState) => {
     message.success('登录成功！')
     router.push('/') // 登录成功后跳转到首页
   } catch (error) {
-    message.error('登录失败，请重试！')
+    console.error('登录失败', error)
   }
 }
 </script>

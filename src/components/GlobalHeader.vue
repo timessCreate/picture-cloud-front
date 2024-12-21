@@ -13,15 +13,26 @@
       :items="menuItems"
       :overflowedIndicator="h(EllipsisOutlined)"
       :wrap="false"
+      @click="doMenuClick"
     />
 
     <div class="login-button">
-      <a href="/user/login" class="login-link">登录</a>
+      <div class="user-login-status">
+        <div v-if="loginUserStore.userLoginUser.id">
+          {{ loginUserStore.userLoginUser.userName ?? '无名' }}
+        </div>
+        <div v-else>
+          <router-link to="/user/login">
+            <a-button type="primary" class="login-link">登录</a-button>
+          </router-link>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { ref, h } from 'vue'
 import type { MenuProps } from 'ant-design-vue'
 import {
@@ -31,12 +42,12 @@ import {
   GiftOutlined,
   EllipsisOutlined,
 } from '@ant-design/icons-vue'
+import { useLoginUserStore } from '@/stores/useLoginUserStore'
 
-const current = ref<string[]>(['home'])
-
+const loginUserStore = useLoginUserStore()
 const menuItems = ref<MenuProps['items']>([
   {
-    key: 'home',
+    key: '/',
     icon: () => h(HomeOutlined),
     label: '主页',
     title: '主页',
@@ -50,7 +61,7 @@ const menuItems = ref<MenuProps['items']>([
   {
     key: 'github',
     icon: () => h(GithubOutlined),
-    label: h('a', { href: 'https://github.com/timess', target: '_blank' }, 'GitHub'),
+    label: h('a', { href: 'https://github.com/timessCreate', target: '_blank' }, 'GitHub'),
     title: 'GitHub',
   },
   {
@@ -60,6 +71,12 @@ const menuItems = ref<MenuProps['items']>([
     title: '捐赠',
   },
 ])
+const current = ref<string[]>([])
+const router = useRouter()
+// 路由跳转事件
+const doMenuClick = ({ key }: { key: string }) => {
+  router.push({ path: key })
+}
 </script>
 
 <style scoped>

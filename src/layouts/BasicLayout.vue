@@ -1,6 +1,6 @@
 <template>
   <div id="basicLayout">
-    <a-layout style="height: 100vh">
+    <a-layout style="min-height: 100vh">
       <a-layout-header class="header">
         <GlobalHeader />
       </a-layout-header>
@@ -33,10 +33,10 @@ import GlobalHeader from '../components/GlobalHeader.vue'
 }
 
 #basicLayout .content {
-  padding: 20px;
-  margin-top: 84px;
-  background: linear-gradient(to bottom, #fff2f5, #eeeeee);
+  padding: 24px;
+  margin-top: 64px;
   min-height: calc(100vh - 64px - 64px);
+  background: linear-gradient(to bottom, #fffff5, #eeeeee);
 }
 
 #basicLayout .footer {
