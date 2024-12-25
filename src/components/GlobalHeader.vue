@@ -18,7 +18,7 @@
 
     <div class="login-button">
       <div class="user-login-status">
-        <div v-if="loginUserStore.userLoginUser.id">
+        <div v-if="!!loginUserStore?.userLoginUser?.id">
           {{ loginUserStore.userLoginUser.userName ?? '无名' }}
         </div>
         <div v-else>

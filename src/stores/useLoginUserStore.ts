@@ -1,12 +1,12 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { getUserInfoUsingGet } from '@/api/userController'
+import { getLoginUserInfoUsingGet } from '../api/userController'
 /*
   这是一个全局状态管理，用于存储登录用户信息的状态
 */
 
 export const useLoginUserStore = defineStore('userLoginUser', () => {
-  const userLoginUser = ref<any>({
+  const userLoginUser = ref<API.LoginUserVO>({
     userName: '未登录',
   })
 
@@ -14,16 +14,18 @@ export const useLoginUserStore = defineStore('userLoginUser', () => {
    * 远程获取登录用户信息
    */
   async function fetchLoginUser() {
-    //TODO: 后端接口尚未确定
-    // const res = await getUserInfoUsingGet({})
-    // userLoginUser.value = res.data
+    const res = await getLoginUserInfoUsingGet({})
+    console.log('获取用户信息结果:', res)
+    if(res.code === 0 && res.data){
+      userLoginUser.value = res.data as API.LoginUserVO
+    }
   }
 
   /**
    * 设置登录用户信息
    * @param userLoginUser 登录用户信息
    */
-  function setUserLoginUser(newLoginUser: any) {
+  function setUserLoginUser(newLoginUser: API.LoginUserVO) {
     userLoginUser.value = newLoginUser
   }
 
