@@ -8,7 +8,6 @@ import { getLoginUserInfoUsingGet } from '../api/userController'
 export const useLoginUserStore = defineStore('userLoginUser', () => {
   // 使用 ref 创建响应式引用
   const userLoginUser = ref<API.LoginUserVO>({
-
   })
 
   /**

@@ -11,14 +11,15 @@
       v-model:selectedKeys="current"
       mode="horizontal"
       :items="menuItems"
-      :overflowedIndicator="h(EllipsisOutlined)"
+      :overflowedIndicator="()=>h(EllipsisOutlined)"
       :wrap="false"
       @click="doMenuClick"
     />
 
+
     <div class="login-button">
       <div class="user-login-status">
-        <div v-if="userLoginUser.id">
+        <div v-if="isLogin">
           <a-dropdown>
             <a-space>
               <a-avatar :src="userLoginUser.userAvatar" />
@@ -65,51 +66,8 @@ import { logoutUsingGet } from '@/api/userController'
 
 const loginUserStore = useLoginUserStore()
 const { userLoginUser } = storeToRefs(loginUserStore)
+const isLogin = ref(false)
 
-// //原始菜单
-// const originMenuItems = ref<MenuProps['items']>(
-//   [
-//   {
-//     key: '/',
-//     icon: () => h(HomeOutlined),
-//     label: '主页',
-//     title: '主页',
-//   },
-//   {
-//     key: '/admin/userManage',
-//     icon: () => h(InfoCircleOutlined),
-//     label: '用户管理',
-//     title: '用户管理',
-//   },
-//   {
-//     key: 'github',
-//     icon: () => h(GithubOutlined),
-//     label: h('a', { href: 'https://github.com/timessCreate', target: '_blank' }, 'GitHub'),
-//     title: 'GitHub',
-//   },
-//   {
-//     key: '/donate',
-//     icon: () => h(GiftOutlined),
-//     label: '捐赠',
-//     title: '捐赠',
-//   },
-// ])
-
-// //根据用户身份过滤菜单
-// const filterMenuItems = (menuItems = [] as MenuProps['items']) => {
-//   return menuItems?.filter((menu) => {
-
-//     if (typeof menu?.key === 'string' && menu.key.startsWith('/admin')) {
-//       const loginUser = loginUserStore.userLoginUser;
-//       if(loginUser.userRole === 'admin' || loginUser.userRole === 'super_admin'){
-//         return true;
-//       }
-//     }
-//     return true;
-//   })
-// }
-// //展示在菜单中item
-// const menuItems = computed(() =>  filterMenuItems(originMenuItems.value))
 
 // 菜单列表
 const originItems = [
@@ -139,20 +97,16 @@ const originItems = [
   },
 ]
 
-//BUG: 解决导航栏更新问题后，取消注释
 // 过滤菜单项
 const filterMenus = (menus = [] as MenuProps['items']) => {
   return menus?.filter((menu) => {
-  //   if (menu?.key?.toString().startsWith('/admin')) {
-  //     const loginUser = loginUserStore.userLoginUser
-  //     console.log("----------" +loginUser)
-  //     if (!loginUser || (loginUser.userRole !== "admin" && loginUser.userRole !== "super_admin")) {
-  //       return false
-  //     }
-  //   }
-  //   return true
-  // })
-  return true;
+    if (menu?.key?.toString().startsWith('/admin')) {
+      const loginUser = loginUserStore.userLoginUser
+      if (!loginUser || (loginUser.userRole !== "admin" && loginUser.userRole !== "super_admin")) {
+        return false
+      }
+    }
+    return true
   })
 }
 
@@ -173,6 +127,7 @@ watch(userLoginUser, (newVal, oldVal) => {
     old: oldVal,
     new: newVal
   })
+  isLogin.value = true
 }, { deep: true })
 
 // 添加一些日志
@@ -182,7 +137,7 @@ const logout = async () => {
   try {
     // 调用后端退出登录接口
     const res = await logoutUsingGet();
-
+    isLogin.value = false;
     if (res.code === 0) {
       // 清空用户信息
       loginUserStore.setUserLoginUser({});
@@ -206,6 +161,7 @@ onMounted(async () => {
     console.error('GlobalHeader mounted error:', error)
   }
 })
+
 </script>
 
 <style scoped>
