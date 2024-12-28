@@ -126,19 +126,22 @@ declare namespace API {
 
   type UserUpdateRequest = {
     id?: number
-    userAvatar?: string
+    status?: number
     userName?: string
-    userProfile?: string
+    userAvatar?: string
     userRole?: string
+    userProfile?: string
   }
 
   type UserVO = {
     createTime?: string
-    id?: number
+    id: number
     userAccount?: string
     userAvatar?: string
     userName?: string
     userProfile?: string
     userRole?: string
+    status: number
+    updateTime?: string
   }
 }

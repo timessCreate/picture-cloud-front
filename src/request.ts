@@ -1,4 +1,3 @@
-import { message } from 'ant-design-vue'
 import axios from 'axios'
 
 const myAxios = axios.create({

@@ -27,7 +27,7 @@
 
         <a-form-item
           name="userPassword"
-          :rules="[{ required: true, message: '请输入密码！' }]"
+          :rules="[{ required: true, message: '请输入密码！' }, { min: 6, message: '密码长度至少为6位' }, { max: 16, message: '密码长度最多为16位' }]"
         >
           <a-input-password
             v-model:value="formState.userPassword"
@@ -40,8 +40,11 @@
           </a-input-password>
         </a-form-item>
 
-        <a-form-item name="remember">
-          <a-checkbox v-model:checked="formState.remember">记住我</a-checkbox>
+        <a-form-item name="remember" class="remember-register">
+          <div class="flex-between">
+            <a-checkbox v-model:checked="formState.remember">记住我</a-checkbox>
+            <router-link to="/user/register" class="register-link">去注册</router-link>
+          </div>
         </a-form-item>
 
         <a-form-item>
@@ -55,6 +58,7 @@
           >
             登录
           </a-button>
+
         </a-form-item>
       </a-form>
     </a-card>
@@ -191,6 +195,22 @@ const onFinishFailed = (errorInfo: any) => {
 :deep(.ant-input-affix-wrapper:hover),
 :deep(.ant-input-affix-wrapper-focused) {
   transform: translateY(-1px);
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.register-link {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.register-link:hover {
+  color: #40a9ff;
 }
 </style>
 

@@ -2,10 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../pages/HomeView.vue'
 import LoginView from '../pages/user/UserLoginView.vue'
 import type { RouteRecordRaw } from 'vue-router'
-import AboutView from '../pages/user/AboutView.vue'
 import DonateView from '../pages/user/DonateView.vue'
-import UserManagerView from '../pages/admin/UserManagerView.vue'
 import UserRegisterView from '../pages/user/UserRegisterView.vue'
+import UserManageView from '../pages/admin/UserManagerView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -20,23 +19,18 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/user/register',
-    name: 'userRegister',
-    component: UserRegisterView,
+    name: 'register',
+    component: UserRegisterView
   },
   {
-    path: '/about',
-    name: 'about',
-    component: AboutView,
+    path: '/admin/userManage',
+    name: 'userManage',
+    component: UserManageView,
   },
   {
     path: '/donate',
     name: 'donate',
     component: DonateView,
-  },
-  {
-    path: '/admin/users',
-    name: 'userManager',
-    component: UserManagerView,
   },
 ]
 

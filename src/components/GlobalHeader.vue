@@ -18,8 +18,23 @@
 
     <div class="login-button">
       <div class="user-login-status">
-        <div v-if="!!loginUserStore?.userLoginUser?.id">
-          {{ loginUserStore.userLoginUser.userName ?? '无名' }}
+        <div v-if="userLoginUser.id">
+          <a-dropdown>
+            <a-space>
+              <a-avatar :src="userLoginUser.userAvatar" />
+              {{ userLoginUser.userName ?? '无名'}}
+            </a-space>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="logout">
+                  <a-button type="primary" @click="logout">
+                    <logoutOutlined />
+                    退出登录
+                  </a-button>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </div>
         <div v-else>
           <router-link to="/user/login">
@@ -33,7 +48,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { ref, h } from 'vue'
+import { ref, h, onMounted, watch, computed } from 'vue'
 import type { MenuProps } from 'ant-design-vue'
 import {
   HomeOutlined,
@@ -41,22 +56,74 @@ import {
   GithubOutlined,
   GiftOutlined,
   EllipsisOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons-vue'
-import { useLoginUserStore } from '@/stores/useLoginUserStore'
+import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
+import { storeToRefs } from 'pinia'
+import { message } from 'ant-design-vue'
+import { logoutUsingGet } from '@/api/userController'
 
 const loginUserStore = useLoginUserStore()
-const menuItems = ref<MenuProps['items']>([
-  {
+const { userLoginUser } = storeToRefs(loginUserStore)
+
+// //原始菜单
+// const originMenuItems = ref<MenuProps['items']>(
+//   [
+//   {
+//     key: '/',
+//     icon: () => h(HomeOutlined),
+//     label: '主页',
+//     title: '主页',
+//   },
+//   {
+//     key: '/admin/userManage',
+//     icon: () => h(InfoCircleOutlined),
+//     label: '用户管理',
+//     title: '用户管理',
+//   },
+//   {
+//     key: 'github',
+//     icon: () => h(GithubOutlined),
+//     label: h('a', { href: 'https://github.com/timessCreate', target: '_blank' }, 'GitHub'),
+//     title: 'GitHub',
+//   },
+//   {
+//     key: '/donate',
+//     icon: () => h(GiftOutlined),
+//     label: '捐赠',
+//     title: '捐赠',
+//   },
+// ])
+
+// //根据用户身份过滤菜单
+// const filterMenuItems = (menuItems = [] as MenuProps['items']) => {
+//   return menuItems?.filter((menu) => {
+
+//     if (typeof menu?.key === 'string' && menu.key.startsWith('/admin')) {
+//       const loginUser = loginUserStore.userLoginUser;
+//       if(loginUser.userRole === 'admin' || loginUser.userRole === 'super_admin'){
+//         return true;
+//       }
+//     }
+//     return true;
+//   })
+// }
+// //展示在菜单中item
+// const menuItems = computed(() =>  filterMenuItems(originMenuItems.value))
+
+// 菜单列表
+const originItems = [
+    {
     key: '/',
     icon: () => h(HomeOutlined),
     label: '主页',
     title: '主页',
   },
   {
-    key: 'about',
+    key: '/admin/userManage',
     icon: () => h(InfoCircleOutlined),
-    label: '关于',
-    title: '关于',
+    label: '用户管理',
+    title: '用户管理',
   },
   {
     key: 'github',
@@ -65,18 +132,80 @@ const menuItems = ref<MenuProps['items']>([
     title: 'GitHub',
   },
   {
-    key: 'donate',
+    key: '/donate',
     icon: () => h(GiftOutlined),
     label: '捐赠',
     title: '捐赠',
   },
-])
+]
+
+//BUG: 解决导航栏更新问题后，取消注释
+// 过滤菜单项
+const filterMenus = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+  //   if (menu?.key?.toString().startsWith('/admin')) {
+  //     const loginUser = loginUserStore.userLoginUser
+  //     console.log("----------" +loginUser)
+  //     if (!loginUser || (loginUser.userRole !== "admin" && loginUser.userRole !== "super_admin")) {
+  //       return false
+  //     }
+  //   }
+  //   return true
+  // })
+  return true;
+  })
+}
+
+// 展示在菜单的路由数组
+const menuItems = computed<MenuProps['items']>(() => filterMenus(originItems))
+console.log("过滤结果" + menuItems.value);
+
 const current = ref<string[]>([])
 const router = useRouter()
 // 路由跳转事件
 const doMenuClick = ({ key }: { key: string }) => {
   router.push({ path: key })
 }
+
+// 添加 watch 来监听状态变化
+watch(userLoginUser, (newVal, oldVal) => {
+  console.log('userLoginUser changed:', {
+    old: oldVal,
+    new: newVal
+  })
+}, { deep: true })
+
+// 添加一些日志
+console.log('Initial userLoginUser:', userLoginUser.value)
+
+const logout = async () => {
+  try {
+    // 调用后端退出登录接口
+    const res = await logoutUsingGet();
+
+    if (res.code === 0) {
+      // 清空用户信息
+      loginUserStore.setUserLoginUser({});
+      // 跳转到登录页
+      await router.push('/user/login');
+    } else {
+      message.error('退出登录失败，' + res.message);
+    }
+  } catch (error) {
+    console.error('退出登录失败:', error);
+    message.error('退出登录失败，请重试');
+  }
+}
+
+onMounted(async () => {
+  try {
+    console.log('GlobalHeader mounted')
+    await loginUserStore.fetchLoginUser()
+    console.log('After fetchLoginUser:', userLoginUser.value)
+  } catch (error) {
+    console.error('GlobalHeader mounted error:', error)
+  }
+})
 </script>
 
 <style scoped>

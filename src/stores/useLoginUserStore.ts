@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { getLoginUserInfoUsingGet } from '../api/userController'
 /*
@@ -6,18 +6,26 @@ import { getLoginUserInfoUsingGet } from '../api/userController'
 */
 
 export const useLoginUserStore = defineStore('userLoginUser', () => {
+  // 使用 ref 创建响应式引用
   const userLoginUser = ref<API.LoginUserVO>({
-    userName: '未登录',
+
   })
 
   /**
    * 远程获取登录用户信息
    */
   async function fetchLoginUser() {
-    const res = await getLoginUserInfoUsingGet({})
-    console.log('获取用户信息结果:', res)
-    if(res.code === 0 && res.data){
-      userLoginUser.value = res.data as API.LoginUserVO
+    try {
+      const res = await getLoginUserInfoUsingGet({})
+      if(res.code === 0 && res.data){
+        userLoginUser.value = res.data as API.LoginUserVO
+      } else {
+        console.error('获取用户信息失败:', res)
+      }
+    } catch (error) {
+      console.error('获取用户信息出错:', error)
+      // 可以在这里重置用户信息
+      userLoginUser.value = {}
     }
   }
 
@@ -26,7 +34,13 @@ export const useLoginUserStore = defineStore('userLoginUser', () => {
    * @param userLoginUser 登录用户信息
    */
   function setUserLoginUser(newLoginUser: API.LoginUserVO) {
-    userLoginUser.value = newLoginUser
+    try {
+      console.log('设置新的用户信息:', newLoginUser)
+      userLoginUser.value = newLoginUser
+      console.log('设置后的用户信息:', userLoginUser.value)
+    } catch (error) {
+      console.error('设置用户信息出错:', error)
+    }
   }
 
   //导出数据,其他组件可以调用
