@@ -24,7 +24,7 @@ myAxios.interceptors.request.use(
 myAxios.interceptors.response.use(
   function (response) {
     console.log('进入响应拦截器 --> 完整的响应对象:', response)
-    return response.data
+    return response
   },
   function (error) {
     console.log('进入错误处理')

@@ -84,16 +84,15 @@ const originItems = [
     title: '用户管理',
   },
   {
+  key: '/add_picture',
+  label: '创建图片',
+  title: '创建图片',
+  },
+  {
     key: 'github',
     icon: () => h(GithubOutlined),
     label: h('a', { href: 'https://github.com/timessCreate', target: '_blank' }, 'GitHub'),
     title: 'GitHub',
-  },
-  {
-    key: '/donate',
-    icon: () => h(GiftOutlined),
-    label: '捐赠',
-    title: '捐赠',
   },
 ]
 
@@ -102,6 +101,7 @@ const filterMenus = (menus = [] as MenuProps['items']) => {
   return menus?.filter((menu) => {
     if (menu?.key?.toString().startsWith('/admin')) {
       const loginUser = loginUserStore.userLoginUser
+      console.log("登录对象信息：",loginUser)
       if (!loginUser || (loginUser.userRole !== "admin" && loginUser.userRole !== "super_admin")) {
         return false
       }
@@ -121,14 +121,15 @@ const doMenuClick = ({ key }: { key: string }) => {
   router.push({ path: key })
 }
 
-// 添加 watch 来监听状态变化
-watch(userLoginUser, (newVal, oldVal) => {
-  console.log('userLoginUser changed:', {
-    old: oldVal,
-    new: newVal
-  })
-  isLogin.value = true
-}, { deep: true })
+// 修改 watch 部分
+watch(
+  () => loginUserStore.userLoginUser,
+  (newVal) => {
+    console.log('userLoginUser changed:', newVal)
+    isLogin.value = Object.keys(newVal).length > 0
+  },
+  { deep: true, immediate: true }
+)
 
 // 添加一些日志
 console.log('Initial userLoginUser:', userLoginUser.value)
@@ -137,14 +138,15 @@ const logout = async () => {
   try {
     // 调用后端退出登录接口
     const res = await logoutUsingGet();
-    isLogin.value = false;
-    if (res.code === 0) {
+    if (res.data.code === 0) {
       // 清空用户信息
       loginUserStore.setUserLoginUser({});
+      isLogin.value = false;  // 设置登录状态为 false
       // 跳转到登录页
       await router.push('/user/login');
+      message.success('退出登录成功');
     } else {
-      message.error('退出登录失败，' + res.message);
+      message.error('退出登录失败，' + res.data.message);
     }
   } catch (error) {
     console.error('退出登录失败:', error);

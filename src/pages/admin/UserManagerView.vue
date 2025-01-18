@@ -133,9 +133,10 @@ const fetchData = async () => {
   loading.value = true
   try {
     const res = await listUserVoByPageUsingPost({...searchParams})
-    if(res.code === 0 && res.data){
-      userList.value = res.data.records ?? []
-      total.value = res.data.total ?? 0
+
+    if(res.data.code === 0 && res.data){
+      userList.value = res.data.data?.records ?? []
+      total.value = res.data.data?.total ?? 0
     } else {
       message.error('获取用户列表失败')
     }
@@ -178,11 +179,11 @@ const handleDelete = async (record: API.UserVO) => {
     async onOk() {
       try {
         const res = await deleteUserUsingPost({id: record.id});
-        if (res.code === 0) {
+        if (res.data.code === 0) {
           message.success('删除用户成功')
           await fetchData()
         } else {
-          message.error(res.message || '删除失败')
+          message.error(res.data.message || '删除失败')
         }
       } catch (error) {
         message.error('删除失败，请重试')

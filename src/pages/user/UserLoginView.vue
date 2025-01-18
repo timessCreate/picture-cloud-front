@@ -96,7 +96,7 @@ const onFinish = async (values: FormState) => {
       userAccount: values.userAccount,
       userPassword: values.userPassword,
     })
-    if (res.code === 0) {
+    if (res.data.code === 0) {
       message.success('登录成功')
       // 更新用户信息
       await loginUserStore.fetchLoginUser()
@@ -104,7 +104,7 @@ const onFinish = async (values: FormState) => {
       await router.push('/')
     } else {
       // 直接显示后端返回的错误信息
-      message.error(res.message)
+      message.error(res.data.message)
     }
   } catch (error) {
     message.error('登录失败，请重试')

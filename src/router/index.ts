@@ -2,9 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../pages/HomeView.vue'
 import LoginView from '../pages/user/UserLoginView.vue'
 import type { RouteRecordRaw } from 'vue-router'
-import DonateView from '../pages/user/DonateView.vue'
 import UserRegisterView from '../pages/user/UserRegisterView.vue'
 import UserManageView from '../pages/admin/UserManagerView.vue'
+import AddPicturePage from '../pages/AddPicturePage.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -28,10 +28,10 @@ const routes: RouteRecordRaw[] = [
     component: UserManageView,
   },
   {
-    path: '/donate',
-    name: 'donate',
-    component: DonateView,
-  },
+    path: '/add_picture',
+    name: '创建图片',
+    component: AddPicturePage,
+  }
 ]
 
 const router = createRouter({

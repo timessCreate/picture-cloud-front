@@ -122,12 +122,12 @@ const onFinish = async (values: FormState) => {
       userAccount: values.userAccount,
       userPassword: values.userPassword
     })
-    if (res.code === 0) {
+    if (res.data.code === 0) {
       message.success('注册成功')
       // 跳转到登录页
       await router.push('/user/login')
     } else {
-      message.error(res.message || '注册失败')
+      message.error(res.data.message || '注册失败')
     }
   } catch (error) {
     message.error('注册失败，请重试')

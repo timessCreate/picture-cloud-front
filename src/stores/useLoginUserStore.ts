@@ -16,8 +16,8 @@ export const useLoginUserStore = defineStore('userLoginUser', () => {
   async function fetchLoginUser() {
     try {
       const res = await getLoginUserInfoUsingGet({})
-      if(res.code === 0 && res.data){
-        userLoginUser.value = res.data as API.LoginUserVO
+      if(res.data.code === 0 && res.data.data){
+        userLoginUser.value = res.data.data as API.LoginUserVO
       } else {
         console.error('获取用户信息失败:', res)
       }
