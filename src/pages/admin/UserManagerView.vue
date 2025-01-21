@@ -136,7 +136,7 @@ const fetchData = async () => {
 
     if(res.data.code === 0 && res.data){
       userList.value = res.data.data?.records ?? []
-      total.value = res.data.data?.total ?? 0
+      total.value = Number(res.data.data?.total)
     } else {
       message.error('获取用户列表失败')
     }
@@ -229,11 +229,11 @@ const handleUserStatus = async (record: API.UserVO) => {
       status: newStatus  // 确保这里的status是number类型
     })
 
-    if (res.code === 0) {
+    if (res.data.code === 0) {
       message.success(`${newStatus === 0 ? '启用' : '禁用'}用户成功`)
       await fetchData()
     } else {
-      message.error(res.message || '操作失败')
+      message.error(res.data.message || '操作失败')
     }
   } catch (error) {
     console.error('更新用户状态失败:', error)

@@ -5,6 +5,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import UserRegisterView from '../pages/user/UserRegisterView.vue'
 import UserManageView from '../pages/admin/UserManagerView.vue'
 import AddPicturePage from '../pages/AddPicturePage.vue'
+import PictureManagerView from '@/pages/admin/PictureManagerView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -23,6 +24,11 @@ const routes: RouteRecordRaw[] = [
     component: UserRegisterView
   },
   {
+    path: '/picture/:id',
+    name: 'pictureDetail',
+    component: () => import('@/pages/PictureDetailView.vue')
+  },
+  {
     path: '/admin/userManage',
     name: 'userManage',
     component: UserManageView,
@@ -31,7 +37,12 @@ const routes: RouteRecordRaw[] = [
     path: '/add_picture',
     name: '创建图片',
     component: AddPicturePage,
-  }
+  },
+  {
+    path: '/admin/pictureManage',
+    name: '图片管理',
+    component: PictureManagerView,
+  },
 ]
 
 const router = createRouter({

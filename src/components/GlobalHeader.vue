@@ -84,6 +84,12 @@ const originItems = [
     title: '用户管理',
   },
   {
+    key: '/admin/pictureManage',
+    icon: () => h(InfoCircleOutlined),
+    label: '图片管理',
+    title: '图片管理',
+  },
+  {
   key: '/add_picture',
   label: '创建图片',
   title: '创建图片',
@@ -109,7 +115,6 @@ const filterMenus = (menus = [] as MenuProps['items']) => {
     return true
   })
 }
-
 // 展示在菜单的路由数组
 const menuItems = computed<MenuProps['items']>(() => filterMenus(originItems))
 console.log("过滤结果" + menuItems.value);

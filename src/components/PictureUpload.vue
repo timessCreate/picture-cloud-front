@@ -45,9 +45,7 @@ const handleUpload = async ({file}: any)=>{
   }
   loading.value = false;
   } catch (error) {
-    message.error('图片上传失败 ' + error.message);
     message.error('图片上传失败' + error);
-
   }
   //无论成功与否，都设置loading为false,标识上传结束
   loading.value = false;
