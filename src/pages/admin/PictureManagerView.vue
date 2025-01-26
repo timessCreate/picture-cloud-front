@@ -30,6 +30,22 @@
             </a-select-option>
           </a-select>
         </a-form-item>
+        <a-form-item label="状态">
+          <a-select
+            v-model:value="searchParams.reviewStatus"
+            placeholder="请选择状态"
+            style="width: 150px"
+            allowClear
+          >
+            <a-select-option
+              v-for="option in PIC_REVIEW_STATUS_OPTIONS"
+              :key="option.value"
+              :value="Number(option.value)"
+            >
+              {{ option.label }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
         <a-form-item>
           <a-space>
             <a-button type="primary" @click="handleSearch">
@@ -58,8 +74,8 @@
       <a-image
         :src="record.url"
         :preview="{
-          src: record.url,
-          mask: '预览图片'
+          maskClassName: 'preview-mask',
+          visible: false
         }"
       />
     </div>
@@ -79,17 +95,37 @@
       <div>大小：{{ formatFileSize(record.picSize || 0) }}</div>
     </div>
   </template>
-  <template v-else-if="column.dataIndex === 'createTime'">
-    {{ record.createTime ? dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') : '-' }}
+  <template v-else-if="column.dataIndex === 'reviewStatus'">
+    <a-tag :color="getStatusColor(record.reviewStatus)">
+      {{ PIC_REVIEW_STATUS_MAP[record.reviewStatus] }}
+    </a-tag>
   </template>
-  <template v-else-if="column.dataIndex === 'editTime'">
-    {{ dayjs(record.editTime).format('YYYY-MM-DD HH:mm:ss') }}
+  <template v-else-if="column.dataIndex === 'time'">
+    <div class="time-column">
+      <div>创建：{{ formatTime(record.createTime) }}</div>
+      <div>更新：{{ formatTime(record.editTime) }}</div>
+    </div>
   </template>
   <template v-else-if="column.key === 'action'">
-    <a-space>
-      <a-button type="link" @click="handleEdit(record)">编辑</a-button>
-      <a-button type="link" danger @click="handleDelete(record)">删除</a-button>
-    </a-space>
+    <div class="action-column">
+      <a-button type="link" size="small" @click="handleEdit(record)">
+        <EditOutlined />
+        编辑
+      </a-button>
+      <a-button
+        type="link"
+        size="small"
+        :status="record.reviewStatus === 0 ? 'warning' : ''"
+        @click="handleReview(record)"
+      >
+        <CheckCircleOutlined />
+        审核
+      </a-button>
+      <a-button type="link" size="small" danger @click="handleDelete(record)">
+        <DeleteOutlined />
+        删除
+      </a-button>
+    </div>
   </template>
 </template>
 
@@ -142,16 +178,46 @@
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- 审核对话框 -->
+    <a-modal
+      v-model:visible="reviewModalVisible"
+      title="审核图片"
+      @ok="handleReviewSubmit"
+      :confirmLoading="loading"
+    >
+      <a-form :model="reviewForm" layout="vertical">
+        <a-form-item label="审核状态" required>
+          <a-select v-model:value="reviewForm.reviewStatus">
+            <a-select-option
+              v-for="option in PIC_REVIEW_STATUS_OPTIONS"
+              :key="option.value"
+              :value="Number(option.value)"
+            >
+              {{ option.label }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="审核意见">
+          <a-textarea
+            v-model:value="reviewForm.reviewMessage"
+            placeholder="请输入审核意见"
+            :rows="4"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { SearchOutlined, ReloadOutlined, UserOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import { SearchOutlined, ReloadOutlined, UserOutlined, UploadOutlined, EditOutlined, CheckCircleOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { deleteUserUsingPost, listUserVoByPageUsingPost, updateUserUsingPost } from '../../api/userController'
-import { deletePictureUsingPost, listPictureByPageUsingPost, updatePictureUsingPost, listPictureTagCategoryUsingGet } from '@/api/pictureController'
+import { deletePictureUsingPost, listPictureByPageUsingPost, updatePictureUsingPost, listPictureTagCategoryUsingGet, doPictureReviewUsingPost } from '@/api/pictureController'
+import { PIC_REVIEW_STATUS_ENUM, PIC_REVIEW_STATUS_MAP, PIC_REVIEW_STATUS_OPTIONS } from '@/constants/picture'
 
 const loading = ref(false)
 const columns = [
@@ -198,19 +264,20 @@ const columns = [
     width: 100,
   },
   {
-    title: '创建时间',
-    dataIndex: 'createTime',
-    width: 160,
+    title: '状态',
+    dataIndex: 'reviewStatus',
+    width: 100,
+    align: 'center',
   },
   {
-    title: '编辑时间',
-    dataIndex: 'editTime',
-    width: 160,
+    title: '时间',
+    dataIndex: 'time',
+    width: 180,
   },
   {
     title: '操作',
     key: 'action',
-    width: 150,
+    width: 100,
     fixed: 'right',
   },
 ]
@@ -228,6 +295,7 @@ const searchParams = reactive<API.PictureQueryRequest>({
   sortOrder: 'descend',
   searchText: undefined,
   category: undefined,
+  reviewStatus: undefined,
 })
 
 // 标签选项
@@ -309,6 +377,7 @@ const handleSearch = () => {
 const handleReset = () => {
   searchParams.searchText = undefined
   searchParams.category = undefined
+  searchParams.reviewStatus = undefined
   searchParams.current = 1
   fetchData()
 }
@@ -409,6 +478,63 @@ const calculateAspectRatio = (width: number, height: number) => {
   const divisor = gcd(width, height);
   return `${width/divisor}:${height/divisor}`;
 }
+
+// 添加审核相关的状态
+const reviewModalVisible = ref(false)
+const reviewForm = reactive({
+  id: undefined,
+  reviewStatus: undefined,
+  reviewMessage: '',
+})
+
+// 处理审核按钮点击
+const handleReview = (record: any) => {
+  reviewForm.id = record.id
+  reviewForm.reviewStatus = record.reviewStatus
+  reviewForm.reviewMessage = record.reviewMessage
+  reviewModalVisible.value = true
+}
+
+// 处理审核提交
+const handleReviewSubmit = async () => {
+  try {
+    loading.value = true
+    const res = await doPictureReviewUsingPost({
+      id: reviewForm.id,
+      reviewStatus: reviewForm.reviewStatus,
+      reviewMessage: reviewForm.reviewMessage,
+    }, {})
+    if (res.data.code === 0) {
+      message.success('审核成功')
+      reviewModalVisible.value = false
+      await fetchData()
+    } else {
+      message.error('审核失败：' + res.data.message)
+    }
+  } catch (error) {
+    message.error('审核失败')
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 添加辅助函数
+const getStatusColor = (status: number) => {
+  switch (status) {
+    case PIC_REVIEW_STATUS_ENUM.PASS:
+      return 'success'
+    case PIC_REVIEW_STATUS_ENUM.REJECT:
+      return 'error'
+    case PIC_REVIEW_STATUS_ENUM.REVIEWING:
+    default:
+      return 'warning'
+  }
+}
+
+const formatTime = (time: string) => {
+  return time ? dayjs(time).format('YYYY-MM-DD HH:mm:ss') : '-'
+}
 </script>
 
 <style scoped>
@@ -453,5 +579,61 @@ const calculateAspectRatio = (width: number, height: number) => {
   height: auto;
   object-fit: contain;
   display: block;
+}
+
+/* 添加预览遮罩样式 */
+:deep(.preview-mask) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+:deep(.preview-mask)::after {
+  content: '预览图片';
+}
+
+.action-column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.action-column .ant-btn {
+  padding: 2px 4px;
+  height: auto;
+  line-height: 1;
+}
+
+.action-column .ant-btn:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.action-column .ant-btn-dangerous:hover {
+  background: rgba(255, 77, 79, 0.1);
+}
+
+.time-column {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+:deep(.ant-tag-success) {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: #52c41a;
+}
+
+:deep(.ant-tag-error) {
+  background: #fff2f0;
+  border-color: #ffccc7;
+  color: #ff4d4f;
+}
+
+:deep(.ant-tag-warning) {
+  background: #fffbe6;
+  border-color: #ffe58f;
+  color: #faad14;
 }
 </style>
