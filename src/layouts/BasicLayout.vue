@@ -21,6 +21,10 @@ import GlobalHeader from '../components/GlobalHeader.vue'
 </script>
 
 <style scoped>
+#basicLayout{
+  display: flex;
+  flex-direction: column;
+}
 #basicLayout .header {
   background-color: #ffffff;
   padding: 0;
@@ -30,12 +34,12 @@ import GlobalHeader from '../components/GlobalHeader.vue'
   width: 100%;
   z-index: 1000;
   border-bottom: 1px solid #e0e0e0;
+
 }
 
 #basicLayout .content {
-  padding: 24px;
-  margin-top: 64px;
-  min-height: calc(100vh - 64px - 64px);
+  flex:1 1 auto;
+  margin-top: 84px;
   background: linear-gradient(to bottom, #fffff5, #eeeeee);
 }
 
@@ -43,7 +47,9 @@ import GlobalHeader from '../components/GlobalHeader.vue'
   text-align: center;
   background-color: #eeeeee;
   padding: 20px 0;
-  height: 64px;
+  height: 50px;
   border-top: 1px solid #e0e0e0;
+  position:sticky;
+  bottom: 0;
 }
 </style>

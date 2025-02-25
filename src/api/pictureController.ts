@@ -22,6 +22,9 @@ export async function editPictureUsingPost(
   body: API.PictureEditRequest,
   options?: { [key: string]: any }
 ) {
+
+
+
   return request<API.BaseResponseBoolean_>('/api/picture/edit', {
     method: 'POST',
     headers: {
@@ -166,7 +169,21 @@ export async function uploadPictureUsingPost(
       ...params,
     },
     data: formData,
-    requestType: 'form',
+    ...(options || {}),
+  })
+}
+
+/** uploadPictureByUrl POST /api/picture/uploadByUrl */
+export async function uploadPictureByUrlUsingPost(
+  body: API.PictureUploadRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponsePictureVO_>('/api/picture/uploadByUrl', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
     ...(options || {}),
   })
 }

@@ -1,3 +1,112 @@
+<template>
+  <div class="picture-detail">
+    <a-spin :spinning="loading">
+      <div v-if="picture" class="detail-container">
+        <!-- 返回按钮 -->
+        <div class="back-button">
+          <a-button type="link" @click="router.back()">
+            <template #icon><left-outlined /></template>
+            返回
+          </a-button>
+        </div>
+
+        <div class="content-layout">
+          <!-- 左侧图片展示区 -->
+          <div class="image-section">
+            <a-image
+              :src="picture.url"
+              :preview="{
+                src: picture.url,
+                maskClassName: 'preview-mask'
+              }"
+            />
+          </div>
+
+          <!-- 右侧信息区 -->
+          <div class="info-section">
+            <h1 class="title">{{ picture.name }}</h1>
+
+            <!-- 基本信息卡片 -->
+            <div class="info-card">
+              <div class="info-row">
+                <div class="info-label bg-blue">图片信息</div>
+                <div class="info-value image-specs">
+                  <span>
+                    {{ picture.picWidth }} × {{ picture.picHeight }} px
+                    <span v-if="picture.picScale" class="scale-info">
+                      ({{ picture.picScale }})
+                    </span>
+                  </span>
+                  <span class="divider">|</span>
+                  <span>{{ formatFileSize(picture.picSize) }}</span>
+                  <span class="divider">|</span>
+                  <span>{{ picture.picFormat?.toUpperCase() }}</span>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-label bg-green">分类</div>
+                <div class="info-value">
+                  <a-tag color="blue">{{ picture.category }}</a-tag>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-label bg-purple">标签</div>
+                <div class="info-value tags-wrapper">
+                  <a-tag v-for="tag in picture.tags" :key="tag">
+                    {{ tag }}
+                  </a-tag>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-label bg-orange">上传时间</div>
+                <div class="info-value">{{ formatDate(picture.createTime) }}</div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-label bg-cyan">更新时间</div>
+                <div class="info-value">{{ formatDate(picture.updateTime) }}</div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-label bg-pink">上传用户</div>
+                <div class="info-value user-info">
+                  <span class="user-id">ID: {{ picture.userId }}</span>
+                </div>
+              </div>
+
+              <!-- 简介单独一行 -->
+              <div class="info-row description-row">
+                <div class="info-label bg-gold">简介</div>
+                <div class="info-value description">
+                  {{ picture.introduction || '暂无简介' }}
+                </div>
+              </div>
+
+              <!-- 下载按钮 -->
+              <div class="download-section">
+                <a-button
+                  type="primary"
+                  size="large"
+                  :href="picture.url"
+                  target="_blank"
+                  download
+                >
+                  <template #icon><download-outlined /></template>
+                  下载图片
+                </a-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a-spin>
+  </div>
+</template>
+
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -70,113 +179,7 @@ onMounted(() => {
 })
 </script>
 
-<template>
-  <div class="picture-detail">
-    <a-spin :spinning="loading">
-      <div v-if="picture" class="detail-container">
-        <!-- 返回按钮 -->
-        <div class="back-button">
-          <a-button type="link" @click="router.back()">
-            <template #icon><left-outlined /></template>
-            返回
-          </a-button>
-        </div>
 
-        <div class="content-layout">
-          <!-- 左侧图片展示区 -->
-          <div class="image-section">
-            <a-image
-              :src="picture.url"
-              :preview="{
-                src: picture.url,
-                maskClassName: 'preview-mask'
-              }"
-            />
-          </div>
-
-          <!-- 右侧信息区 -->
-          <div class="info-section">
-            <h1 class="title">{{ picture.name }}</h1>
-
-            <!-- 基本信息卡片 -->
-            <div class="info-card">
-              <div class="info-row">
-                <div class="info-label bg-blue">图片信息</div>
-                <div class="info-value image-specs">
-                  <span>
-                    {{ picture.picWidth }} × {{ picture.picHeight }} px
-                    <span v-if="picture.picScale" class="scale-info">
-                      ({{ picture.picScale }})
-                    </span>
-                  </span>
-                  <span class="divider">|</span>
-                  <span>{{ formatFileSize(picture.picSize) }}</span>
-                  <span class="divider">|</span>
-                  <span>{{ picture.picFormat?.toUpperCase() }}</span>
-                </div>
-              </div>
-
-              <div class="info-row">
-                <div class="info-label bg-green">分类</div>
-                <div class="info-value">
-                  <a-tag color="blue">{{ picture.category }}</a-tag>
-                </div>
-              </div>
-
-              <div class="info-row">
-                <div class="info-label bg-purple">标签</div>
-                <div class="info-value tags-wrapper">
-                  <a-tag v-for="tag in parseTags(picture.tags)" :key="tag">
-                    {{ tag }}
-                  </a-tag>
-                </div>
-              </div>
-
-              <div class="info-row">
-                <div class="info-label bg-orange">上传时间</div>
-                <div class="info-value">{{ formatDate(picture.createTime) }}</div>
-              </div>
-
-              <div class="info-row">
-                <div class="info-label bg-cyan">更新时间</div>
-                <div class="info-value">{{ formatDate(picture.updateTime) }}</div>
-              </div>
-
-              <div class="info-row">
-                <div class="info-label bg-pink">上传用户</div>
-                <div class="info-value user-info">
-                  <span class="user-id">ID: {{ picture.userId }}</span>
-                </div>
-              </div>
-
-              <!-- 简介单独一行 -->
-              <div class="info-row description-row">
-                <div class="info-label bg-gold">简介</div>
-                <div class="info-value description">
-                  {{ picture.introduction || '暂无简介' }}
-                </div>
-              </div>
-
-              <!-- 下载按钮 -->
-              <div class="download-section">
-                <a-button
-                  type="primary"
-                  size="large"
-                  :href="picture.url"
-                  target="_blank"
-                  download
-                >
-                  <template #icon><download-outlined /></template>
-                  下载图片
-                </a-button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a-spin>
-  </div>
-</template>
 
 <style scoped>
 .picture-detail {

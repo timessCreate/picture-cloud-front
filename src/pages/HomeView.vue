@@ -3,7 +3,7 @@
     <!-- 顶部横幅 -->
     <div class="banner">
       <div class="banner-content">
-        <!-- 搜索框 -->
+
         <div class="search-container">
           <a-input-search
             v-model:value="searchText"
@@ -123,7 +123,7 @@
                 <h3 class="image-title">{{ item.name }}</h3>
                 <p class="image-desc">{{ item.introduction || '暂无描述' }}</p>
                 <div class="tags">
-                  <a-tag v-for="tag in parseTags(item.tags)" :key="tag" color="blue">
+                  <a-tag v-for="tag in item.tags" :key="tag" color="blue">
                     {{ tag }}
                   </a-tag>
                 </div>
@@ -171,20 +171,21 @@ const selectedTag = ref('')
 const allTags = ref<string[]>([])
 const selectedCategory = ref('')
 const allCategories = ref<string[]>([])
+const total = ref<number | null>(null)
 
 const filteredImages = computed(() => {
   let result = allImages.value
 
   // 先按分类筛选
   if (selectedCategory.value) {
-    result = result.filter(image =>
+    result = result.filter((image: PictureVO) =>
       image.category === selectedCategory.value
     )
   }
 
   // 再按标签筛选
   if (selectedTag.value) {
-    result = result.filter(image =>
+    result = result.filter((image: PictureVO) =>
       image.tags?.includes(selectedTag.value)
     )
   }
@@ -192,16 +193,15 @@ const filteredImages = computed(() => {
   // 最后按搜索词筛选
   if (searchText.value) {
     const keyword = searchText.value.toLowerCase().trim()
-    result = result.filter(image =>
+    result = result.filter((image: PictureVO) =>
       image.name?.toLowerCase().includes(keyword) ||
       image.introduction?.toLowerCase().includes(keyword)
     )
   }
-
   return result
 })
 
-const total = computed(() => filteredImages.value.length)
+
 
 const handleSearch = () => {
   current.value = 1
@@ -233,6 +233,8 @@ const fetchImages = async () => {
 
     if (res.data.code === 0) {
       allImages.value = res.data.data.records || []
+      total.value = Number(res.data.data.total)
+
       if (searchText.value && filteredImages.value.length === 0) {
         message.info('未找到相关图片')
       }
@@ -256,10 +258,6 @@ const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString()
 }
 
-const parseTags = (tags: string | undefined | null) => {
-  if (!tags) return []
-  return typeof tags === 'string' ? tags.split(',') : []
-}
 
 const fetchCategoriesAndTags = async () => {
   try {
@@ -305,13 +303,17 @@ onMounted(() => {
 .home {
   min-height: 100vh;
   background-color: #f0f2f5;
+  overflow: visible;
 }
 
 .banner {
-  background: linear-gradient(120deg, #3498db, #2ecc71);
-  padding: 24px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  padding: 40px 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   position: relative;
+  z-index: 0;
   overflow: hidden;
+  padding-bottom: 80px;
 }
 
 .banner-content {
@@ -321,25 +323,30 @@ onMounted(() => {
 }
 
 .search-container {
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 0 16px;
 }
 
 :deep(.ant-input-search) {
-  border-radius: 24px;
-  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
 }
 
 :deep(.ant-input-search .ant-input) {
-  height: 48px;
-  font-size: 16px;
-  padding-left: 20px;
+  background: transparent;
+  color: black;
+  padding-left: 28px;
+}
+
+:deep(.ant-input-search .ant-input::placeholder) {
+  color: rgba(0, 0, 0, 0.8);
 }
 
 :deep(.ant-input-search .ant-input-search-button) {
-  height: 48px;
-  width: 64px;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-left-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 .container {
@@ -363,9 +370,8 @@ onMounted(() => {
 
 .waterfall {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  padding: 0;
+  grid-template-columns: repeat(4, minmax(200px, 1fr));
+  gap: 16px;
 }
 
 .image-item {
@@ -377,18 +383,19 @@ onMounted(() => {
   background: white;
   border-radius: 12px;
   overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
 }
 
 .image-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15);
 }
 
 .image-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 75%;
+  padding-top: 56.25%;
   overflow: hidden;
 }
 
@@ -407,30 +414,45 @@ onMounted(() => {
   transition: transform 0.3s ease;
 }
 
+.image-wrapper:hover :deep(.ant-image-img) {
+  transform: scale(1.05);
+}
+
 .image-info {
   padding: 16px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 30%);
 }
 
 .image-title {
-  margin: 0 0 8px;
-  font-size: 1.1em;
-  color: #333;
+  margin: 0 0 6px;
+  font-size: 15px;
+  color: #1f2937;
   font-weight: 600;
 }
 
 .image-desc {
-  color: #666;
-  font-size: 0.9em;
-  margin-bottom: 12px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-line-clamp: 3;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  line-height: 1.5;
 }
 
 .tags {
-  margin-bottom: 12px;
+  margin: 10px -4px;
+}
+
+.tags :deep(.ant-tag) {
+  margin: 4px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  border-color: transparent;
+  color: #4b5563;
+  font-size: 12px;
+  padding: 0 8px;
+  line-height: 22px;
 }
 
 .image-meta {
@@ -448,7 +470,8 @@ onMounted(() => {
   text-align: center;
   margin: 32px 0;
   padding: 16px;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
@@ -456,15 +479,18 @@ onMounted(() => {
 .filter-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 10px 24px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   position: relative;
-  z-index: 1;
+  z-index: 10;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: -35px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(209, 213, 219, 0.3);
 }
 
 .filter-content {
@@ -491,19 +517,19 @@ onMounted(() => {
 .filter-tag {
   cursor: pointer;
   user-select: none;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+  border: 1px solid transparent;
   margin: 0;
   font-size: 13px;
   padding: 4px 12px;
   height: auto;
   line-height: 1.4;
-  border-radius: 4px;
 }
 
-.filter-tag:hover {
-  opacity: 0.8;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.filter-tag[style*="#1890ff"] {
+  border-color: rgba(24, 144, 255, 0.2);
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.1);
 }
 
 .filter-actions {
@@ -537,70 +563,45 @@ onMounted(() => {
 }
 
 /* 响应式调整 */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .waterfall {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
-  }
-
-  .banner {
-    min-height: 300px;  /* 减小移动端高度 */
-    padding: 16px 16px 24px;
-  }
-
-  .banner h1 {
-    font-size: 2em;
-  }
-
-  .carousel-container {
-    width: 90%;  /* 移动端略微增加宽度占比 */
-  }
-
-  .carousel-item {
-    height: 180px;  /* 减小移动端轮播图高度 */
-  }
-
-  .carousel-overlay h3 {
-    font-size: 1em;
-  }
-
-  .carousel-overlay p {
-    font-size: 0.8em;
-  }
-
-  .filter-container {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 8px 16px;
-  }
-
-  .filter-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .clear-button {
-    margin-left: 0;
-    margin-top: 8px;
-    align-self: flex-end;
-    font-size: 13px;
-    height: 28px;
-    padding: 3px 10px;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
   }
 }
 
-/* 较小屏幕的额外调整 */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+  .waterfall {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .image-wrapper {
+    padding-top: 75%;
+  }
+
   .banner {
-    min-height: 260px;
+    padding: 28px 16px;
+    padding-bottom: 30px;
   }
 
-  .carousel-item {
-    height: 150px;
+  .filter-container {
+    margin-top: -30px;
+    padding: 12px 16px;
   }
 
-  .carousel-overlay {
-    padding: 12px;
+  .image-title {
+    font-size: 14px;
+  }
+
+  .image-desc {
+    -webkit-line-clamp: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .waterfall {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 8px;
   }
 }
 
