@@ -1,17 +1,34 @@
 import axios from 'axios'
+import JSONBIG from 'json-bigint'
 
 const myAxios = axios.create({
   baseURL: 'http://localhost:8123',
   timeout: 60000,
   // 允许携带cookie
   withCredentials: true,
+  transformRequest: [
+    function (data) {
+      return JSONBIG.stringify(data)
+    }
+  ],
+  transformResponse: [
+    function (data) {
+      try {
+        return JSONBIG({ storeAsString: true }).parse(data)
+      } catch (e) {
+        return data
+      }
+    }
+  ],
+  headers: {
+    'Content-Type': 'application/json'
+  }
 })
 
 // 添加请求拦截器
 myAxios.interceptors.request.use(
   function (config) {
-    console.log(`请求路径: ${config.baseURL}${config.url}`)
-    // 在发送请求之前做些什么
+    //console.log(`请求路径: ${config.baseURL}${config.url}`)
     return config
   },
   function (error) {
@@ -20,10 +37,11 @@ myAxios.interceptors.request.use(
   },
 )
 
+
 // 响应拦截器
 myAxios.interceptors.response.use(
   function (response) {
-    console.log('进入响应拦截器 --> 完整的响应对象:', response)
+    //console.log('进入响应拦截器 --> 完整的响应对象:', response)
     return response
   },
   function (error) {

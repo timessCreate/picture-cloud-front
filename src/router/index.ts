@@ -6,6 +6,7 @@ import UserRegisterView from '../pages/user/UserRegisterView.vue'
 import UserManageView from '../pages/admin/UserManagerView.vue'
 import AddPicturePage from '../pages/AddPicturePage.vue'
 import PictureManagerView from '@/pages/admin/PictureManagerView.vue'
+import SpaceManagerView from '@/pages/admin/SpaceManagerView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -21,12 +22,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/user/register',
     name: 'register',
-    component: UserRegisterView
+    component: UserRegisterView,
   },
   {
     path: '/picture/:id',
     name: 'pictureDetail',
-    component: () => import('@/pages/PictureDetailView.vue')
+    component: () => import('@/pages/PictureDetailView.vue'),
   },
   {
     path: '/admin/userManage',
@@ -43,6 +44,26 @@ const routes: RouteRecordRaw[] = [
     name: '图片管理',
     component: PictureManagerView,
   },
+  {
+    path: '/admin/spaceManage',
+    name: '空间管理',
+    component: SpaceManagerView,
+  },
+  {
+    path: '/space/add',
+    name: '添加空间',
+    component: () => import('@/pages/AddSpaceView.vue'),
+  },
+  {
+    path: '/space/edit/:id',
+    name: '修改空间',
+    component: () => import('@/pages/admin/EditSpaceView.vue'),
+  },
+  // {
+  //   path: '/space/detail/:id',
+  //   name: '我的空间',
+  //   component: () => import('@/pages/SpaceDetailView.vue'),
+  // },
 ]
 
 const router = createRouter({

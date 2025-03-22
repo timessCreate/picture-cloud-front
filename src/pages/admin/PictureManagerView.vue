@@ -21,11 +21,7 @@
             style="width: 200px"
             allowClear
           >
-            <a-select-option
-              v-for="category in categoryOptions"
-              :key="category"
-              :value="category"
-            >
+            <a-select-option v-for="category in categoryOptions" :key="category" :value="category">
               {{ category }}
             </a-select-option>
           </a-select>
@@ -68,67 +64,66 @@
       :loading="loading"
       @change="doTableChange"
     >
-    <template #bodyCell="{ column, record }">
-  <template v-if="column.dataIndex === 'url'">
-    <div class="image-cell">
-      <a-image
-        :src="record.url"
-        :preview="{
-          maskClassName: 'preview-mask',
-          visible: false
-        }"
-      />
-    </div>
-  </template>
-  <!-- 标签 -->
-  <template v-if="column.dataIndex === 'tags'">
-    <a-space wrap>
-      <a-tag v-for="tag in JSON.parse(record.tags || '[]')" :key="tag">{{ tag }}</a-tag>
-    </a-space>
-  </template>
-  <!-- 图片信息 -->
-  <template v-if="column.dataIndex === 'picInfo'">
-    <div>
-      <div>格式：{{ record.picFormat || '-' }}</div>
-      <div>尺寸：{{ record.picWidth || 0 }} x {{ record.picHeight || 0 }}</div>
-      <div>宽高比：{{ calculateAspectRatio(record.picWidth, record.picHeight) }}</div>
-      <div>大小：{{ formatFileSize(record.picSize || 0) }}</div>
-    </div>
-  </template>
-  <template v-else-if="column.dataIndex === 'reviewStatus'">
-    <a-tag :color="getStatusColor(record.reviewStatus)">
-      {{ PIC_REVIEW_STATUS_MAP[record.reviewStatus] }}
-    </a-tag>
-  </template>
-  <template v-else-if="column.dataIndex === 'time'">
-    <div class="time-column">
-      <div>创建：{{ formatTime(record.createTime) }}</div>
-      <div>更新：{{ formatTime(record.editTime) }}</div>
-    </div>
-  </template>
-  <template v-else-if="column.key === 'action'">
-    <div class="action-column">
-      <a-button type="link" size="small" @click="handleEdit(record)">
-        <EditOutlined />
-        编辑
-      </a-button>
-      <a-button
-        type="link"
-        size="small"
-        :status="record.reviewStatus === 0 ? 'warning' : ''"
-        @click="handleReview(record)"
-      >
-        <CheckCircleOutlined />
-        审核
-      </a-button>
-      <a-button type="link" size="small" danger @click="handleDelete(record)">
-        <DeleteOutlined />
-        删除
-      </a-button>
-    </div>
-  </template>
-</template>
-
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.dataIndex === 'url'">
+          <div class="image-cell">
+            <a-image
+              :src="record.url"
+              :preview="{
+                maskClassName: 'preview-mask',
+                visible: false,
+              }"
+            />
+          </div>
+        </template>
+        <!-- 标签 -->
+        <template v-if="column.dataIndex === 'tags'" class="tags-column">
+          <a-space wrap>
+            <a-tag v-for="tag in JSON.parse(record.tags || '[]')" :key="tag">{{ tag }}</a-tag>
+          </a-space>
+        </template>
+        <!-- 图片信息 -->
+        <template v-if="column.dataIndex === 'picInfo'">
+          <div>
+            <div>格式：{{ record.picFormat || '-' }}</div>
+            <div>尺寸：{{ record.picWidth || 0 }} x {{ record.picHeight || 0 }}</div>
+            <div>宽高比：{{ calculateAspectRatio(record.picWidth, record.picHeight) }}</div>
+            <div>大小：{{ formatFileSize(record.picSize || 0) }}</div>
+          </div>
+        </template>
+        <template v-else-if="column.dataIndex === 'reviewStatus'">
+          <a-tag :color="getStatusColor(record.reviewStatus)">
+            {{ PIC_REVIEW_STATUS_MAP[record.reviewStatus] }}
+          </a-tag>
+        </template>
+        <template v-else-if="column.dataIndex === 'time'">
+          <div class="time-column">
+            <div>创建：{{ formatTime(record.createTime) }}</div>
+            <div>更新：{{ formatTime(record.editTime) }}</div>
+          </div>
+        </template>
+        <template v-else-if="column.key === 'action'">
+          <div class="action-column">
+            <a-button type="link" size="small" @click="handleEdit(record)">
+              <EditOutlined />
+              编辑
+            </a-button>
+            <a-button
+              type="link"
+              size="small"
+              :status="record.reviewStatus === 0 ? 'warning' : ''"
+              @click="handleReview(record)"
+            >
+              <CheckCircleOutlined />
+              审核
+            </a-button>
+            <a-button type="link" size="small" danger @click="handleDelete(record)">
+              <DeleteOutlined />
+              删除
+            </a-button>
+          </div>
+        </template>
+      </template>
     </a-table>
 
     <!-- 编辑对话框 -->
@@ -150,16 +145,8 @@
           />
         </a-form-item>
         <a-form-item label="分类">
-          <a-select
-            v-model:value="editForm.category"
-            placeholder="请选择分类"
-            allowClear
-          >
-            <a-select-option
-              v-for="category in categoryOptions"
-              :key="category"
-              :value="category"
-            >
+          <a-select v-model:value="editForm.category" placeholder="请选择分类" allowClear>
+            <a-select-option v-for="category in categoryOptions" :key="category" :value="category">
               {{ category }}
             </a-select-option>
           </a-select>
@@ -212,12 +199,29 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { SearchOutlined, ReloadOutlined, UserOutlined, UploadOutlined, EditOutlined, CheckCircleOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import {
+  SearchOutlined,
+  ReloadOutlined,
+  UserOutlined,
+  UploadOutlined,
+  EditOutlined,
+  CheckCircleOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
-import { deleteUserUsingPost, listUserVoByPageUsingPost, updateUserUsingPost } from '../../api/userController'
-import { deletePictureUsingPost, listPictureByPageUsingPost, updatePictureUsingPost, listPictureTagCategoryUsingGet, doPictureReviewUsingPost } from '@/api/pictureController'
-import { PIC_REVIEW_STATUS_ENUM, PIC_REVIEW_STATUS_MAP, PIC_REVIEW_STATUS_OPTIONS } from '@/constants/picture'
+import {
+  deletePictureUsingPost,
+  listPictureByPageUsingPost,
+  updatePictureUsingPost,
+  listPictureTagCategoryUsingGet,
+  doPictureReviewUsingPost,
+} from '@/api/pictureController'
+import {
+  PIC_REVIEW_STATUS_ENUM,
+  PIC_REVIEW_STATUS_MAP,
+  PIC_REVIEW_STATUS_OPTIONS,
+} from '@/constants/picture'
 
 const loading = ref(false)
 const columns = [
@@ -282,7 +286,6 @@ const columns = [
   },
 ]
 
-
 // 数据
 const dataList = ref([])
 const total = ref(0)
@@ -300,8 +303,17 @@ const searchParams = reactive<API.PictureQueryRequest>({
 
 // 标签选项
 const tagOptions = ref<string[]>([
-  '自然', '城市', '美食', '旅行', '动物', '人像',
-  '风景', '建筑', '艺术', '生活', '其他'
+  '自然',
+  '城市',
+  '美食',
+  '旅行',
+  '动物',
+  '人像',
+  '风景',
+  '建筑',
+  '艺术',
+  '生活',
+  '其他',
 ])
 
 // 添加分类选项状态
@@ -335,11 +347,11 @@ const pagination = computed(() => {
 
 // 添加文件大小格式化函数
 const formatFileSize = (bytes: number) => {
-  if (!bytes || bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+  if (!bytes || bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
 }
 
 // 获取数据
@@ -347,7 +359,7 @@ const fetchData = async () => {
   try {
     loading.value = true
     const res = await listPictureByPageUsingPost(searchParams)
-    if (res.data.code === 0) {
+    if (res.data.code === 0 && res.data.data) {
       dataList.value = res.data.data.records ?? []
       total.value = Number(res.data.data.total) ?? 0
     } else {
@@ -382,7 +394,6 @@ const handleReset = () => {
   fetchData()
 }
 
-
 // 表格变化处理
 const doTableChange = (page: any) => {
   searchParams.current = page.current
@@ -413,7 +424,7 @@ const handleDelete = async (record: any) => {
       } finally {
         loading.value = false
       }
-    }
+    },
   })
 }
 
@@ -452,7 +463,7 @@ const handleEditSubmit = async () => {
       name: editForm.name,
       introduction: editForm.introduction,
       category: editForm.category,
-      tags: editForm.tags  // 直接传递数组，不需要JSON.stringify
+      tags: editForm.tags, // 直接传递数组，不需要JSON.stringify
     }
 
     const res = await updatePictureUsingPost(params)
@@ -473,10 +484,10 @@ const handleEditSubmit = async () => {
 
 // 在 script setup 部分添加宽高比计算函数
 const calculateAspectRatio = (width: number, height: number) => {
-  if (!width || !height) return '-';
-  const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
-  const divisor = gcd(width, height);
-  return `${width/divisor}:${height/divisor}`;
+  if (!width || !height) return '-'
+  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b))
+  const divisor = gcd(width, height)
+  return `${width / divisor}:${height / divisor}`
 }
 
 // 添加审核相关的状态
@@ -499,11 +510,14 @@ const handleReview = (record: any) => {
 const handleReviewSubmit = async () => {
   try {
     loading.value = true
-    const res = await doPictureReviewUsingPost({
-      id: reviewForm.id,
-      reviewStatus: reviewForm.reviewStatus,
-      reviewMessage: reviewForm.reviewMessage,
-    }, {})
+    const res = await doPictureReviewUsingPost(
+      {
+        id: reviewForm.id,
+        reviewStatus: reviewForm.reviewStatus,
+        reviewMessage: reviewForm.reviewMessage,
+      },
+      {},
+    )
     if (res.data.code === 0) {
       message.success('审核成功')
       reviewModalVisible.value = false
@@ -543,6 +557,8 @@ const formatTime = (time: string) => {
 }
 
 .header-actions {
+  margin-top: 15px;
+  margin-left: 10%;
   margin-bottom: 16px;
 }
 

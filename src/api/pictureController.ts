@@ -22,9 +22,6 @@ export async function editPictureUsingPost(
   body: API.PictureEditRequest,
   options?: { [key: string]: any }
 ) {
-
-
-
   return request<API.BaseResponseBoolean_>('/api/picture/edit', {
     method: 'POST',
     headers: {
@@ -86,6 +83,21 @@ export async function listPictureVoByPageUsingPost(
   options?: { [key: string]: any }
 ) {
   return request<API.BaseResponsePagePictureVO_>('/api/picture/list/page/vo', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** listPictureVOByPageWithCache POST /api/picture/list/page/vo/cache */
+export async function listPictureVoByPageWithCacheUsingPost(
+  body: API.PictureQueryRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponsePagePictureVO_>('/api/picture/list/page/vo/cache', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -169,6 +181,7 @@ export async function uploadPictureUsingPost(
       ...params,
     },
     data: formData,
+    requestType: 'form',
     ...(options || {}),
   })
 }

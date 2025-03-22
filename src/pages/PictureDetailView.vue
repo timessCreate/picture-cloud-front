@@ -180,7 +180,6 @@ onMounted(() => {
 </script>
 
 
-
 <style scoped>
 .picture-detail {
   width: 100%;

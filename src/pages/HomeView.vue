@@ -3,7 +3,6 @@
     <!-- 顶部横幅 -->
     <div class="banner">
       <div class="banner-content">
-
         <div class="search-container">
           <a-input-search
             v-model:value="searchText"
@@ -85,24 +84,12 @@
         <div class="search-result" v-if="searchText || selectedTag || selectedCategory">
           <p>
             {{ total }} 张图片
-            <template v-if="selectedCategory">
-              (分类: {{ selectedCategory }})
-            </template>
-            <template v-if="selectedTag">
-              (标签: {{ selectedTag }})
-            </template>
-            <template v-if="searchText">
-              (搜索: {{ searchText }})
-            </template>
+            <template v-if="selectedCategory"> (分类: {{ selectedCategory }}) </template>
+            <template v-if="selectedTag"> (标签: {{ selectedTag }}) </template>
+            <template v-if="searchText"> (搜索: {{ searchText }}) </template>
           </p>
           <div class="filter-actions">
-            <a-button
-              type="link"
-              @click="clearSearch"
-              v-if="searchText"
-            >
-              清除搜索
-            </a-button>
+            <a-button type="link" @click="clearSearch" v-if="searchText"> 清除搜索 </a-button>
           </div>
         </div>
 
@@ -115,7 +102,7 @@
                   :src="item.url"
                   :preview="{
                     src: item.url,
-                    maskClassName: 'preview-mask'
+                    maskClassName: 'preview-mask',
                   }"
                 />
               </div>
@@ -155,7 +142,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { SearchOutlined, CloseOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import { listPictureVoByPageUsingPost, listPictureTagCategoryUsingGet } from '@/api/pictureController'
+import {
+  listPictureVoByPageUsingPost,
+  listPictureTagCategoryUsingGet,
+} from '@/api/pictureController'
 import type { PictureVO } from '@/api/typings'
 import { useRouter } from 'vue-router'
 
@@ -178,30 +168,25 @@ const filteredImages = computed(() => {
 
   // 先按分类筛选
   if (selectedCategory.value) {
-    result = result.filter((image: PictureVO) =>
-      image.category === selectedCategory.value
-    )
+    result = result.filter((image: PictureVO) => image.category === selectedCategory.value)
   }
 
   // 再按标签筛选
   if (selectedTag.value) {
-    result = result.filter((image: PictureVO) =>
-      image.tags?.includes(selectedTag.value)
-    )
+    result = result.filter((image: PictureVO) => image.tags?.includes(selectedTag.value))
   }
 
   // 最后按搜索词筛选
   if (searchText.value) {
     const keyword = searchText.value.toLowerCase().trim()
-    result = result.filter((image: PictureVO) =>
-      image.name?.toLowerCase().includes(keyword) ||
-      image.introduction?.toLowerCase().includes(keyword)
+    result = result.filter(
+      (image: PictureVO) =>
+        image.name?.toLowerCase().includes(keyword) ||
+        image.introduction?.toLowerCase().includes(keyword),
     )
   }
   return result
 })
-
-
 
 const handleSearch = () => {
   current.value = 1
@@ -228,10 +213,10 @@ const fetchImages = async () => {
       current: current.value,
       pageSize: pageSize.value,
       sortField: 'createTime',
-      sortOrder: 'descend'
+      sortOrder: 'descend',
     })
 
-    if (res.data.code === 0) {
+    if (res.data.code === 0 && res.data.data) {
       allImages.value = res.data.data.records || []
       total.value = Number(res.data.data.total)
 
@@ -257,7 +242,6 @@ const handlePageChange = (page: number) => {
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString()
 }
-
 
 const fetchCategoriesAndTags = async () => {
   try {
@@ -307,13 +291,23 @@ onMounted(() => {
 }
 
 .banner {
+  position: relative;
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
   padding: 40px 24px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  position: relative;
   z-index: 0;
   overflow: hidden;
-  padding-bottom: 80px;
+  padding-bottom: 63px;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
 }
 
 .banner-content {
@@ -383,7 +377,9 @@ onMounted(() => {
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -420,7 +416,7 @@ onMounted(() => {
 
 .image-info {
   padding: 16px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 30%);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 30%);
 }
 
 .image-title {
@@ -527,7 +523,7 @@ onMounted(() => {
   line-height: 1.4;
 }
 
-.filter-tag[style*="#1890ff"] {
+.filter-tag[style*='#1890ff'] {
   border-color: rgba(24, 144, 255, 0.2);
   box-shadow: 0 2px 4px rgba(24, 144, 255, 0.1);
 }
@@ -596,6 +592,12 @@ onMounted(() => {
   .image-desc {
     -webkit-line-clamp: 2;
   }
+
+  .snake-character {
+    right: -30px;
+    height: 200px;
+    opacity: 0.8;
+  }
 }
 
 @media (max-width: 480px) {
@@ -615,5 +617,15 @@ onMounted(() => {
 
 :deep(.preview-mask)::after {
   content: '点击预览';
+}
+
+.snake-character {
+  position: absolute;
+  right: 10%;
+  bottom: -30px;
+  height: 280px;
+  z-index: 10;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.2));
+  transition: transform 0.3s ease;
 }
 </style>

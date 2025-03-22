@@ -1,49 +1,9 @@
 <template>
-  <div id="globalHeader">
-    <router-link to="/" class="logo-link">
-      <div class="title-bar">
-        <img class="logo" src="../assets/logo.png" alt="logo" />
-        <div class="title">易图</div>
-      </div>
-    </router-link>
-
-    <a-menu
-      v-model:selectedKeys="current"
-      mode="horizontal"
-      :items="menuItems"
-      :overflowedIndicator="() => h(EllipsisOutlined)"
-      :wrap="false"
-      @click="doMenuClick"
-      style="margin-left: 10%"
-    />
-
-    <div class="login-button">
-      <div class="user-login-status">
-        <div v-if="isLogin">
-          <a-dropdown>
-            <a-space>
-              <a-avatar :src="userLoginUser.userAvatar" />
-              {{ userLoginUser.userName ?? '无名' }}
-            </a-space>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item key="logout">
-                  <a-button type="primary" @click="logout">
-                    <logoutOutlined />
-                    退出登录
-                  </a-button>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-        </div>
-        <div v-else>
-          <router-link to="/user/login">
-            <a-button type="primary" class="login-link">登录</a-button>
-          </router-link>
-        </div>
-      </div>
-    </div>
+  <div id="globalSider">
+    <a-layout-sider width="210" style="background: #fff" breakpoint="lg">
+      <a-menu v-model:selectedKeys="current" mode="inline" :items="menuItems" @click="doMenuClick">
+      </a-menu>
+    </a-layout-sider>
   </div>
 </template>
 
@@ -51,14 +11,7 @@
 import { useRouter } from 'vue-router'
 import { ref, h, onMounted, watch, computed } from 'vue'
 import type { MenuProps } from 'ant-design-vue'
-import {
-  HomeOutlined,
-  InfoCircleOutlined,
-  GithubOutlined,
-  GiftOutlined,
-  EllipsisOutlined,
-  LogoutOutlined,
-} from '@ant-design/icons-vue'
+import { PictureOutlined, UserOutlined, TeamOutlined } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { storeToRefs } from 'pinia'
 import { message } from 'ant-design-vue'
@@ -72,38 +25,21 @@ const isLogin = ref(false)
 const originItems = [
   {
     key: '/',
-    icon: () => h(HomeOutlined),
-    label: '主页',
-    title: '主页',
-  },
-  {
-    key: '/admin/userManage',
-    icon: () => h(InfoCircleOutlined),
-    label: '用户管理',
-    title: '用户管理',
-  },
-  {
-    key: '/admin/pictureManage',
-    icon: () => h(InfoCircleOutlined),
-    label: '图片管理',
-    title: '图片管理',
-  },
-  {
-    key: '/admin/spaceManage',
-    icon: () => h(InfoCircleOutlined),
-    label: '空间管理',
-    title: '空间管理',
+    icon: () => h(PictureOutlined),
+    label: '公共空间',
+    title: '公共空间',
   },
   {
     key: '/add_picture',
-    label: '创建图片',
-    title: '创建图片',
+    icon: () => h(UserOutlined),
+    label: '个人空间',
+    title: '个人空间',
   },
   {
-    key: 'github',
-    icon: () => h(GithubOutlined),
-    label: h('a', { href: 'https://github.com/timessCreate', target: '_blank' }, 'GitHub'),
-    title: 'GitHub',
+    key: '/admin/spaceManage',
+    icon: () => h(TeamOutlined),
+    label: '团队空间',
+    title: '团队空间',
   },
 ]
 
@@ -175,10 +111,11 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-#globalHeader {
+#globalSider {
   width: 100%;
   background: #fff;
   display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
@@ -217,7 +154,7 @@ onMounted(async () => {
 
 .login-button {
   flex-shrink: 0;
-  margin: 0 20px;
+  margin: 1 20px;
 }
 
 .login-link {

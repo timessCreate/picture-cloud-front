@@ -72,7 +72,7 @@ import { SearchOutlined, ReloadOutlined, UserOutlined } from '@ant-design/icons-
 import { onMounted, reactive, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { deleteUserUsingPost, listUserVoByPageUsingPost, updateUserUsingPost } from '../../api/userController'
-
+import dayjs from 'dayjs'
 const loading = ref(false)
 
 const columns = [
@@ -104,11 +104,13 @@ const columns = [
   },
   {
     title: '创建时间',
-    dataIndex: 'createTime'
+    dataIndex: 'createTime',
+    customRender: ({ text }: { text: string }) => formatTime(text)
   },
   {
     title: '更新时间',
-    dataIndex: 'updateTime'
+    dataIndex: 'updateTime',
+    customRender: ({ text }: { text: string }) => formatTime(text)
   },
   {
     title: '状态',
@@ -240,7 +242,9 @@ const handleUserStatus = async (record: API.UserVO) => {
     message.error('操作失败')
   }
 }
-
+const formatTime = (time: string) => {
+  return time ? dayjs(time).format('YYYY-MM-DD HH:mm:ss') : '-'
+}
 onMounted(() => {
   fetchData()
 })
