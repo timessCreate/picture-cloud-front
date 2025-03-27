@@ -206,7 +206,9 @@ const pagination = computed(() => {
 const fetchData = async () => {
   try {
     loading.value = true
-    const res = await listSpaceByPageUsingPost(searchParams)
+    const res = await listSpaceByPageUsingPost({
+      ...searchParams,
+    })
     if (res.data.data?.records) {
       dataList.value = res.data.data.records.map((item) => ({
         ...item,
@@ -219,9 +221,8 @@ const fetchData = async () => {
     } else {
       message.error('获取数据失败：' + res.data.message)
     }
-    console.log('获取数据成功：' + res.data.data)
   } catch (error) {
-    //message.error('获取数据失败')
+    message.error('获取数据失败')
     console.error(error)
   } finally {
     loading.value = false

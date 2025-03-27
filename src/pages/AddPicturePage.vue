@@ -1,27 +1,74 @@
 <template>
   <div class="add-picture-page-container">
     <a-card class="create-picture-card">
-    <a-tabs v-model:activeKey="activeTab">
-      <!-- 原有文件上传 -->
-      <a-tab-pane key="file" tab="文件上传">
-        <div id="addPicturePage">
-          <div class="content-container">
-            <div class="flex-layout">
-              <div class="upload-section">
-                <PictureUpload :picture="picture" :onSuccess="localFileUpload.onSuccess" />
+      <a-tabs v-model:activeKey="activeTab">
+        <!-- 原有文件上传 -->
+        <a-tab-pane key="file" tab="文件上传">
+          <div id="addPicturePage">
+            <div class="content-container">
+              <div class="flex-layout">
+                <div class="upload-section">
+                  <PictureUpload :picture="picture" :onSuccess="localFileUpload.onSuccess" />
+                </div>
+                <a-form
+                  v-if="picture"
+                  layout="vertical"
+                  :model="pictureForm"
+                  @submit="handleSubmit"
+                  class="form-container"
+                >
+                  <a-form-item label="名称" name="name">
+                    <a-input v-model:value="pictureForm.name" placeholder="请输入名称" />
+                  </a-form-item>
+                  <a-form-item label="简介" name="introduction">
+                    <a-textarea
+                      v-model:value="pictureForm.introduction"
+                      placeholder="请输入简介"
+                      :rows="2"
+                      autoSize
+                      allowClear
+                    />
+                  </a-form-item>
+                  <a-form-item label="分类" name="category">
+                    <a-auto-complete
+                      v-model:value="editForm.category"
+                      placeholder="请输入分类"
+                      :options="categoryOptions"
+                      allowClear
+                    />
+                  </a-form-item>
+                  <a-form-item label="标签" name="tags">
+                    <a-select
+                      v-model:value="editForm.tags"
+                      mode="tags"
+                      placeholder="请输入标签"
+                      :options="tagOptions"
+                      allowClear
+                    />
+                  </a-form-item>
+                  <a-form-item>
+                    <a-button type="primary" html-type="submit" style="width: 100%">创建</a-button>
+                  </a-form-item>
+                </a-form>
               </div>
-              <a-form v-if="picture" layout="vertical" :model="pictureForm" @submit="handleSubmit" class="form-container">
-                <a-form-item label="名称" name="name">
-                  <a-input v-model:value="pictureForm.name" placeholder="请输入名称" />
-                </a-form-item>
-                <a-form-item label="简介" name="introduction">
-                  <a-textarea
-                    v-model:value="pictureForm.introduction"
-                    placeholder="请输入简介"
-                    :rows="2"
-                    autoSize
-                    allowClear
-                  />
+            </div>
+          </div>
+        </a-tab-pane>
+
+        <!-- 新增URL上传 -->
+        <a-tab-pane key="url" tab="URL上传">
+          <a-card class="upload-card">
+            <!-- 上传成功后的展示 -->
+            <div v-if="urlUpload.url" class="preview-container">
+              <!-- 左侧图片展示 -->
+              <div class="image-preview">
+                <a-image :src="urlUpload.result?.url" class="preview-image" :preview="false" />
+              </div>
+
+              <!-- 右侧编辑表单 -->
+              <a-form class="edit-form" v-show="urlUpload.url" @submit="handleSubmit">
+                <a-form-item label="图片名称">
+                  <a-input v-model:value="editForm.name" />
                 </a-form-item>
                 <a-form-item label="分类" name="category">
                   <a-auto-complete
@@ -35,87 +82,38 @@
                   <a-select
                     v-model:value="editForm.tags"
                     mode="tags"
-                    placeholder="请输入标签"
+                    placeholder="输入标签"
                     :options="tagOptions"
-                    allowClear
                   />
                 </a-form-item>
-                <a-form-item>
-                  <a-button type="primary" html-type="submit" style="width: 100%">创建</a-button>
+                <a-form-item label="简介" name="introduction">
+                  <a-textarea v-model:value="editForm.introduction" :rows="4" />
                 </a-form-item>
+                <a-button type="primary" html-type="submit">保存修改</a-button>
               </a-form>
             </div>
-          </div>
-        </div>
-      </a-tab-pane>
 
-      <!-- 新增URL上传 -->
-      <a-tab-pane key="url" tab="URL上传">
-        <a-card class="upload-card">
-          <!-- 上传成功后的展示 -->
-          <div v-if="urlUpload.url" class="preview-container">
-            <!-- 左侧图片展示 -->
-            <div class="image-preview">
-              <a-image
-                :src="urlUpload.result.url"
-                class="preview-image"
-                :preview="false"
-              />
+            <!-- 上传表单（未上传时显示） -->
+            <div v-else class="upload-form">
+              <a-input v-model:value="urlUpload.url" placeholder="输入图片URL" class="url-input" />
+              <a-button type="primary" :loading="urlUpload.loading" @click="handleUrlUpload">
+                立即上传
+              </a-button>
             </div>
-
-            <!-- 右侧编辑表单 -->
-            <a-form class="edit-form" v-show="urlUpload.url"  @submit="handleSubmit">
-              <a-form-item label="图片名称">
-                <a-input v-model:value="editForm.name" />
-              </a-form-item>
-              <a-form-item label="分类" name="category">
-                <a-auto-complete
-                    v-model:value="editForm.category"
-                    placeholder="请输入分类"
-                    :options="categoryOptions"
-                    allowClear
-                  />
-              </a-form-item>
-              <a-form-item label="标签" name="tags">
-                <a-select
-                  v-model:value="editForm.tags"
-                  mode="tags"
-                  placeholder="输入标签"
-                  :options="tagOptions"
-                />
-              </a-form-item>
-              <a-form-item label="简介" name="introduction">
-                <a-textarea v-model:value="editForm.introduction" :rows="4"/>
-              </a-form-item>
-              <a-button type="primary" html-type="submit">保存修改</a-button>
-            </a-form>
-          </div>
-
-          <!-- 上传表单（未上传时显示） -->
-          <div v-else class="upload-form">
-            <a-input
-              v-model:value="urlUpload.url"
-              placeholder="输入图片URL"
-              class="url-input"
-            />
-            <a-button
-              type="primary"
-              :loading="urlUpload.loading"
-              @click="handleUrlUpload"
-            >
-              立即上传
-            </a-button>
-          </div>
-        </a-card>
-      </a-tab-pane>
-    </a-tabs>
-  </a-card>
+          </a-card>
+        </a-tab-pane>
+      </a-tabs>
+    </a-card>
   </div>
-
 </template>
 
 <script setup lang="ts">
-import { editPictureUsingPost, getPictureVoByIdUsingGet, listPictureTagCategoryUsingGet, uploadPictureByUrlUsingPost } from '@/api/pictureController'
+import {
+  editPictureUsingPost,
+  getPictureVoByIdUsingGet,
+  listPictureTagCategoryUsingGet,
+  uploadPictureByUrlUsingPost,
+} from '@/api/pictureController'
 import PictureUpload from '@/components/PictureUpload.vue'
 import { message } from 'ant-design-vue'
 import { reactive, ref, onMounted } from 'vue'
@@ -130,7 +128,7 @@ const localFileUpload = {
   onSuccess: (data: API.PictureVO) => {
     // 本地文件上传成功处理
     picture.value = data
-  }
+  },
 }
 
 // URL上传对应实现
@@ -147,21 +145,21 @@ const urlUpload = reactive({
       name: data.name,
       introduction: data.introduction,
       category: data.category,
-      tags: data.tags || []
+      tags: data.tags || [],
     })
-  }
+  },
 })
 
 const handleUrlUpload = async () => {
   try {
     urlUpload.loading = true
     const { data } = await uploadPictureByUrlUsingPost({
-      pictureUrl: urlUpload.url
+      pictureUrl: urlUpload.url,
     })
     if (data.code === 0 && data.data) {
       urlUpload.onSuccess(data.data)
       message.success('URL上传成功')
-    }else{
+    } else {
       message.error(data.message)
     }
   } finally {
@@ -174,9 +172,8 @@ const handleSubmit = async () => {
   const params: API.PictureEditRequest = {
     ...editForm,
     // 统一处理ID来源
-    id: picture.value?.id || urlUpload.result?.id
+    id: picture.value?.id || urlUpload.result?.id,
   }
-
 
   if (!params.id) {
     message.error('请先上传图片')
@@ -184,8 +181,8 @@ const handleSubmit = async () => {
   }
 
   try {
-    const { data } = await editPictureUsingPost(params)
-    if (data.code === 0) {
+    const res = await editPictureUsingPost(params)
+    if (res.data.code === 0) {
       message.success('信息保存成功')
       picture.value = null
       urlUpload.url = ''
@@ -203,21 +200,21 @@ const router = useRouter()
  */
 // const categoryOptions = ref<string[]>([])
 // const tagOptions = ref<string[]>([])
-const tagOptions = ref<Array<{ value: string; label: string }>>([]);
-const categoryOptions = ref<Array<{ value: string; label: string }>>([]);
+const tagOptions = ref<Array<{ value: string; label: string }>>([])
+const categoryOptions = ref<Array<{ value: string; label: string }>>([])
 // 获取标签和分类选项
 const getTagCategoryOptions = async () => {
   const res = await listPictureTagCategoryUsingGet()
   if (res.data.code === 0 && res.data.data) {
     // 转换成下拉选项组件接受的格式
     tagOptions.value = (res.data.data.tagList ?? []).map((data: string) => ({
-        value: data,
-        label: data,
-    }));
+      value: data,
+      label: data,
+    }))
     categoryOptions.value = (res.data.data.categoryList ?? []).map((data: string) => ({
-        value: data,
-        label: data,
-    }));
+      value: data,
+      label: data,
+    }))
   } else {
     message.error('加载选项失败，' + res.data.message)
   }
@@ -227,33 +224,33 @@ onMounted(() => {
   getTagCategoryOptions()
 })
 
-const route = useRoute();
+const route = useRoute()
 //获取上传的图片信息
-const getOldPicture = async()=>{
+const getOldPicture = async () => {
   //获取图片id
   const id = route.query?.id
-  if(id){
+  if (id) {
     const res = await getPictureVoByIdUsingGet({
-      id
+      id,
     })
-    if(res.data.code === 0 && res.data.data){
-      const data = res.data.data;
-      picture.value = data;
-      pictureForm.name = data.name;
-      pictureForm.introduction = data.introduction;
-      pictureForm.category = data.category;
-      pictureForm.tags = data.tags;
+    if (res.data.code === 0 && res.data.data) {
+      const data = res.data.data
+      picture.value = data
+      pictureForm.name = data.name
+      pictureForm.introduction = data.introduction
+      pictureForm.category = data.category
+      pictureForm.tags = data.tags
     }
   }
 }
 //用户上传照片后，首次加载更新图片信息表单时加载
 onMounted(() => {
-  getOldPicture();
+  getOldPicture()
 })
 
 // 状态管理
-const activeTab = ref<'file' | 'url'>('file');
-const isEditing = ref(false);
+const activeTab = ref<'file' | 'url'>('file')
+const isEditing = ref(false)
 
 // 编辑阶段状态
 const editForm = reactive({
@@ -261,7 +258,7 @@ const editForm = reactive({
   name: '',
   category: '',
   tags: [] as string[],
-  introduction: ''
+  introduction: '',
 })
 
 // 编辑提交
@@ -274,7 +271,7 @@ const handleEditSubmit = async () => {
       name: editForm.name,
       category: editForm.category,
       tags: editForm.tags.join(','),
-      introduction: editForm.introduction
+      introduction: editForm.introduction,
     }
 
     const { data } = await editPictureUsingPost(params)
@@ -288,13 +285,10 @@ const handleEditSubmit = async () => {
 </script>
 
 <style scoped>
-
-
-
 #addPicturePage {
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-height: 100%;
-width: 100%;
+  height: 100%;
+  width: 100%;
 }
 
 .content-container {

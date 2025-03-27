@@ -108,14 +108,14 @@
               </div>
               <div class="image-info">
                 <h3 class="image-title">{{ item.name }}</h3>
-                <p class="image-desc">{{ item.introduction || '暂无描述' }}</p>
+                <p class="image-desc" v-if="item.introduction">{{ item.introduction }}</p>
                 <div class="tags">
                   <a-tag v-for="tag in item.tags" :key="tag" color="blue">
                     {{ tag }}
                   </a-tag>
                 </div>
                 <div class="image-meta">
-                  <span>{{ formatDate(item.createTime) }}</span>
+                  <span v-if="formatDate(item.createTime)">{{ formatDate(item.createTime) }}</span>
                   <span class="category">{{ item.category }}</span>
                 </div>
               </div>
@@ -240,7 +240,23 @@ const handlePageChange = (page: number) => {
 }
 
 const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString()
+  try {
+    const date = new Date(dateStr)
+    // 检查是否为有效日期
+    if (isNaN(date.getTime())) {
+      return null
+    }
+    return date.toLocaleDateString()
+  } catch (e) {
+    return null
+  }
+}
+
+const formattedDate = (dateStr: string | null) => {
+  if (dateStr) {
+    return formatDate(dateStr)
+  }
+  return null
 }
 
 const fetchCategoriesAndTags = async () => {

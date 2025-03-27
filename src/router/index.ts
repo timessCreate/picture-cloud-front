@@ -7,7 +7,7 @@ import UserManageView from '../pages/admin/UserManagerView.vue'
 import AddPicturePage from '../pages/AddPicturePage.vue'
 import PictureManagerView from '@/pages/admin/PictureManagerView.vue'
 import SpaceManagerView from '@/pages/admin/SpaceManagerView.vue'
-
+import ChartView from '@/pages/ChartView.vue'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -59,11 +59,16 @@ const routes: RouteRecordRaw[] = [
     name: '修改空间',
     component: () => import('@/pages/admin/EditSpaceView.vue'),
   },
-  // {
-  //   path: '/space/detail/:id',
-  //   name: '我的空间',
-  //   component: () => import('@/pages/SpaceDetailView.vue'),
-  // },
+  {
+    path: '/space/myDetail/:id',
+    name: '我的空间',
+    component: () => import('@/pages/MySpaceDetailView.vue'),
+  },
+  {
+    path: '/chart',
+    name: '图表分析',
+    component: ChartView,
+  },
 ]
 
 const router = createRouter({

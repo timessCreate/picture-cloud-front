@@ -5,7 +5,7 @@
         <GlobalHeader />
       </a-layout-header>
       <a-layout class="layout-content">
-        <a-layout-sider width="210" style="background: #fff" class="sider">
+        <a-layout-sider width="11%" style="background: #fff" class="sider">
           <GlobalSider />
         </a-layout-sider>
         <a-layout-content class="content">

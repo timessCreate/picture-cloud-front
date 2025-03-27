@@ -47,6 +47,21 @@ export async function getSpaceVoByIdUsingGet(
   })
 }
 
+/** getSpaceVOByUserId GET /api/space/get/vo/userId */
+export async function getSpaceVoByUserIdUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getSpaceVOByUserIdUsingGETParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseSpaceVO_>('/api/space/get/vo/userId', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  })
+}
+
 /** getSpaceLevel GET /api/space/list/level */
 export async function getSpaceLevelUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseListSpaceLevel_>('/api/space/list/level', {

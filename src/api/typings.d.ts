@@ -1,7 +1,25 @@
 declare namespace API {
+  type AiResponse = {
+    chartId?: number
+    genChart?: string
+    genResult?: string
+  }
+
+  type BaseResponseAiResponse_ = {
+    code?: number
+    data?: AiResponse
+    message?: string
+  }
+
   type BaseResponseBoolean_ = {
     code?: number
     data?: boolean
+    message?: string
+  }
+
+  type BaseResponseChart_ = {
+    code?: number
+    data?: Chart
     message?: string
   }
 
@@ -20,6 +38,12 @@ declare namespace API {
   type BaseResponseLong_ = {
     code?: number
     data?: number
+    message?: string
+  }
+
+  type BaseResponsePageChart_ = {
+    code?: number
+    data?: PageChart_
     message?: string
   }
 
@@ -89,7 +113,86 @@ declare namespace API {
     message?: string
   }
 
+  type Chart = {
+    chartData?: string
+    chartType?: string
+    createTime?: string
+    execMessage?: string
+    genChart?: string
+    genResult?: string
+    goal?: string
+    id?: number
+    isDelete?: number
+    name?: string
+    status?: string
+    updateTime?: string
+    userId?: number
+  }
+
+  type ChartAddRequest = {
+    chartData?: string
+    chartType?: string
+    goal?: string
+    name?: string
+  }
+
+  type ChartEditRequest = {
+    chartData?: string
+    chartType?: string
+    goal?: string
+    id?: number
+    name?: string
+  }
+
+  type ChartQueryRequest = {
+    chartType?: string
+    current?: number
+    goal?: string
+    id?: number
+    name?: string
+    pageSize?: number
+    sortField?: string
+    sortOrder?: string
+    userId?: number
+  }
+
+  type ChartUpdateRequest = {
+    chartData?: string
+    chartType?: string
+    createTime?: string
+    genChart?: string
+    genResult?: string
+    goal?: string
+    id?: number
+    isDelete?: number
+    name?: string
+    updateTime?: string
+  }
+
   type DeleteRequest = {
+    id?: number
+  }
+
+  type genChartByAiAsyncMqUsingPOSTParams = {
+    chartType?: string
+    goal?: string
+    name?: string
+  }
+
+  type genChartByAiAsyncUsingPOSTParams = {
+    chartType?: string
+    goal?: string
+    name?: string
+  }
+
+  type genChartByAiUsingPOSTParams = {
+    chartType?: string
+    goal?: string
+    name?: string
+  }
+
+  type getChartByIdUsingGETParams = {
+    /** id */
     id?: number
   }
 
@@ -104,6 +207,11 @@ declare namespace API {
   }
 
   type getSpaceVOByIdUsingGETParams = {
+    /** id */
+    id?: number
+  }
+
+  type getSpaceVOByUserIdUsingGETParams = {
     /** id */
     id?: number
   }
@@ -132,6 +240,14 @@ declare namespace API {
     vipCode?: string
     vipExpireTime?: string
     vipNumber?: number
+  }
+
+  type PageChart_ = {
+    current?: number
+    pages?: number
+    records?: Chart[]
+    size?: number
+    total?: number
   }
 
   type PagePicture_ = {
@@ -204,7 +320,6 @@ declare namespace API {
     id?: number
     introduction?: string
     name?: string
-    nullSpaceId?: boolean
     pageSize?: number
     picFormat?: string
     picHeight?: number
