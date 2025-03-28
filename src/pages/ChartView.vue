@@ -41,7 +41,21 @@
         </a-form-item>
 
         <a-form-item label="图表类型" name="chartType">
-          <a-input v-model:value="formState.chartType" placeholder="可选，如：折线图" />
+          <a-select
+            v-model:value="formState.chartType"
+            placeholder="请选择图表类型"
+            show-search
+            option-filter-prop="label"
+          >
+            <a-select-option
+              v-for="type in chartTypes"
+              :key="type.value"
+              :value="type.value"
+              :label="type.label"
+            >
+              {{ type.label }}
+            </a-select-option>
+          </a-select>
         </a-form-item>
 
         <a-form-item :wrapper-col="{ offset: 4 }">
@@ -51,18 +65,38 @@
     </a-card>
 
     <a-card v-if="chartData" title="分析结果" style="margin-top: 24px">
-      <div style="margin-bottom: 24px">
+      <div style="margin-bottom: 24px; position: relative">
         <h3>分析结论</h3>
-        <p>{{ chartData.genResult }}</p>
+        <div style="position: absolute; right: 20px; top: 0">
+          <a-button @click="exportChartData">导出图表JSON数据</a-button>
+          <a-button type="primary" @click="handleSaveImage" style="margin-left: 8px">
+            保存为图片
+          </a-button>
+        </div>
+        <pre style="white-space: pre-wrap">{{ chartData.genResult }}</pre>
       </div>
 
       <div v-if="chartOption">
         <h3>数据可视化</h3>
-        <v-chart :option="chartOption" :style="{ height: '500px' }" autoresize />
+        <v-chart ref="chartRef" :option="chartOption" :style="{ height: '350px' }" autoresize />
       </div>
     </a-card>
 
     <a-spin :spinning="loading" fullscreen />
+
+    <a-modal
+      v-model:visible="showSaveOption"
+      title="选择保存方式"
+      :footer="null"
+      :closable="false"
+      centered
+    >
+      <div style="display: flex; gap: 16px; justify-content: center">
+        <a-button type="primary" @click="exportAsImage">保存到本地</a-button>
+        <a-button :loading="uploadLoading" @click="uploadToPersonalSpace">上传到个人空间</a-button>
+        <a-button @click="showSaveOption = false">取消</a-button>
+      </div>
+    </a-modal>
   </a-page-header>
 </template>
 
@@ -70,7 +104,9 @@
 import { ref, reactive } from 'vue'
 import { message } from 'ant-design-vue'
 import { genChartByAiUsingPost } from '@/api/chartController'
+import { uploadPictureUsingPost } from '@/api/pictureController'
 import { use } from 'echarts/core'
+import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart, BarChart, PieChart } from 'echarts/charts'
 import {
@@ -80,6 +116,7 @@ import {
   GridComponent,
 } from 'echarts/components'
 import VChart from 'vue-echarts'
+import type { ECharts } from 'echarts'
 
 use([
   CanvasRenderer,
@@ -90,6 +127,13 @@ use([
   TooltipComponent,
   LegendComponent,
   GridComponent,
+])
+
+// 图表类型选项
+const chartTypes = ref([
+  { value: 'line', label: '折线图' },
+  { value: 'bar', label: '柱状图' },
+  { value: 'pie', label: '饼图' },
 ])
 
 interface FormState {
@@ -103,12 +147,18 @@ const formState = reactive<FormState>({
   name: '',
   goal: '',
   chartType: '',
+  file: undefined,
 })
 
 const loading = ref(false)
 const chartData = ref<API.AiResponse>()
 const chartOption = ref<any>()
 const fileList = ref<any[]>([])
+const chartRef = ref<{ chart: ECharts }>()
+const showSaveOption = ref(false)
+const uploadLoading = ref(false)
+const loginUser = useLoginUserStore()
+const uploadPictureParams = ref<API.uploadPictureUsingPOSTParams>
 
 const handleFileChange = (info: any) => {
   fileList.value = [info.file]
@@ -128,19 +178,24 @@ const handleSubmit = async () => {
       return
     }
 
-    const formData = new FormData()
-    formData.append('file', formState.file)
-    formData.append('name', formState.name)
-    formData.append('goal', formState.goal)
-    if (formState.chartType) {
-      formData.append('chartType', formState.chartType)
+    // 构造符合接口要求的参数
+    const requestParams = {
+      name: formState.name,
+      goal: formState.goal,
+      chartType: formState.chartType,
     }
 
-    const res = await genChartByAiUsingPost(formData)
-
-    if (res.data) {
-      chartData.value = res.data
-      chartOption.value = JSON.parse(res.data?.genChart || '{}')
+    const res = await genChartByAiUsingPost(
+      requestParams, // 第一个参数对应普通参数
+      {}, // 第二个参数对应body
+      formState.file, // 第二个参数对应文件
+    )
+    console.log(res)
+    if (res.data.code === 0 && res.data.data) {
+      chartData.value = res.data.data
+      console.log(res.data.data)
+      chartOption.value = { ...JSON.parse(res.data.data?.genChart || '{}') }
+      console.log(chartOption.value)
       message.success('分析成功')
     }
   } catch (error) {
@@ -149,11 +204,107 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
+
+const handleSaveImage = () => {
+  showSaveOption.value = true
+}
+
+const uploadToPersonalSpace = async () => {
+  try {
+    uploadLoading.value = true
+    if (chartRef.value?.chart) {
+      const chartInstance = chartRef.value.chart
+      const dataURL = chartInstance.getDataURL({
+        type: 'png',
+        pixelRatio: 2,
+        backgroundColor: '#fff',
+      })
+
+      // 生成文件对象
+      const blob = await fetch(dataURL).then((res) => res.blob())
+      const file = new File([blob], `${formState.name || 'chart'}_${Date.now()}.png`, {
+        type: 'image/png',
+      })
+
+      if (!loginUser.currentSpaceId) {
+        message.error('当前用户没有空间，请先创建空间')
+        return
+      }
+      // 调用图片上传接口
+      const res = await uploadPictureUsingPost(
+        {
+          spaceId: loginUser.currentSpaceId,
+        }, // params参数
+        {}, // body参数
+        file,
+      )
+
+      if (res.data.data?.code === 0) {
+        message.success('上传到个人空间成功')
+      } else {
+        message.error(res.data.data?.message || '上传失败')
+      }
+    }
+  } catch (error) {
+    message.error('上传失败')
+  } finally {
+    uploadLoading.value = false
+    showSaveOption.value = false
+  }
+}
+
+const exportAsImage = () => {
+  if (chartRef.value?.chart) {
+    const chartInstance = chartRef.value.chart
+    const dataURL = chartInstance.getDataURL({
+      type: 'png',
+      pixelRatio: 2,
+      backgroundColor: '#fff',
+    })
+
+    const link = document.createElement('a')
+    link.download = `${formState.name || 'chart'}_${Date.now()}.png`
+    link.href = dataURL
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+}
+
+const exportChartData = () => {
+  if (chartData.value) {
+    const dataStr = JSON.stringify(
+      {
+        config: chartOption.value,
+        conclusion: chartData.value.genResult,
+      },
+      null,
+      2,
+    )
+
+    const blob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.download = `${formState.name || 'chart'}_${Date.now()}.json`
+    link.href = url
+    document.body.appendChild(link)
+    link.click()
+    setTimeout(() => {
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    }, 0)
+  }
+}
 </script>
 
 <style scoped>
 .page-container {
   min-height: 100vh;
   padding: 24px;
+}
+
+.ant-btn {
+  margin-left: 8px;
 }
 </style>

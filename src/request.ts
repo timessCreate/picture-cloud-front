@@ -8,8 +8,11 @@ const myAxios = axios.create({
   withCredentials: true,
   transformRequest: [
     function (data) {
+      if (data instanceof FormData) {
+        return data
+      }
       return JSONBIG.stringify(data)
-    }
+    },
   ],
   transformResponse: [
     function (data) {
@@ -18,11 +21,11 @@ const myAxios = axios.create({
       } catch (e) {
         return data
       }
-    }
+    },
   ],
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 })
 
 // 添加请求拦截器
@@ -36,7 +39,6 @@ myAxios.interceptors.request.use(
     return Promise.reject(error)
   },
 )
-
 
 // 响应拦截器
 myAxios.interceptors.response.use(
@@ -54,7 +56,7 @@ myAxios.interceptors.response.use(
     }
 
     return Promise.reject(error)
-  }
+  },
 )
 
 export default myAxios

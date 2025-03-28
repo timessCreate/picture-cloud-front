@@ -52,6 +52,16 @@
               <template #icon><ReloadOutlined /></template>
               重置
             </a-button>
+            <!-- 批量增加图片 -->
+            <a-button
+              type="primary"
+              class="batch-upload-button"
+              @click="showBatchModal"
+              :loading="batchLoading"
+            >
+              <template #icon><LinkOutlined /></template>
+              批量爬取图片
+            </a-button>
           </a-space>
         </a-form-item>
       </a-form>
@@ -194,6 +204,41 @@
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- 批量生成弹窗 -->
+    <a-modal
+      v-model:visible="batchModalVisible"
+      title="批量爬取配置"
+      @ok="handleBatchSubmit"
+      :confirm-loading="batchLoading"
+    >
+      <a-form :model="batchForm" layout="vertical">
+        <a-form-item
+          label="生成数量"
+          :rules="[{ required: true, message: '请输入需要爬取的图片数量' }]"
+        >
+          <a-input-number
+            v-model:value="batchForm.count"
+            :min="1"
+            :max="100"
+            placeholder="1<= x <=30 (默认为10)"
+            style="width: 100%"
+          />
+        </a-form-item>
+
+        <a-form-item label="名称前缀">
+          <a-input v-model:value="batchForm.namePrefix" placeholder="例如：风景图片_" allow-clear />
+        </a-form-item>
+
+        <a-form-item label="搜索关键词">
+          <a-input
+            v-model:value="batchForm.searchText"
+            placeholder="用于图片爬取的搜索关键词"
+            allow-clear
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -207,6 +252,7 @@ import {
   EditOutlined,
   CheckCircleOutlined,
   DeleteOutlined,
+  LinkOutlined,
 } from '@ant-design/icons-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
@@ -216,6 +262,7 @@ import {
   updatePictureUsingPost,
   listPictureTagCategoryUsingGet,
   doPictureReviewUsingPost,
+  uploadPictureByBatchUsingPost,
 } from '@/api/pictureController'
 import {
   PIC_REVIEW_STATUS_ENUM,
@@ -549,6 +596,56 @@ const getStatusColor = (status: number) => {
 const formatTime = (time: string) => {
   return time ? dayjs(time).format('YYYY-MM-DD HH:mm:ss') : '-'
 }
+
+// 状态管理
+const batchModalVisible = ref(false)
+const batchLoading = ref(false)
+const batchForm = reactive<API.PictureUploadByBatchRequest>({
+  count: undefined,
+  namePrefix: undefined,
+  searchText: undefined,
+})
+
+// 显示配置弹窗
+const showBatchModal = () => {
+  batchForm.count = undefined
+  batchForm.namePrefix = undefined
+  batchForm.searchText = undefined
+  batchModalVisible.value = true
+}
+
+// 提交批量生成
+const handleBatchSubmit = async () => {
+  try {
+    batchLoading.value = true
+
+    // 参数验证
+    if (!batchForm.count || batchForm.count < 1) {
+      message.error('请填写有效的生成数量')
+      return
+    }
+
+    const params: API.PictureUploadByBatchRequest = {
+      count: batchForm.count,
+      namePrefix: batchForm.namePrefix,
+      searchText: batchForm.searchText,
+    }
+
+    const res = await uploadPictureByBatchUsingPost(params)
+    if (res.data.code === 0) {
+      message.success(`成功创建${batchForm.count}个生成任务`)
+      batchModalVisible.value = false
+      await fetchData() // 刷新表格数据
+    } else {
+      message.error(`提交失败: ${res.data.message}`)
+    }
+  } catch (error) {
+    message.error('请求异常')
+    console.error('批量生成错误:', error)
+  } finally {
+    batchLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -558,8 +655,13 @@ const formatTime = (time: string) => {
 
 .header-actions {
   margin-top: 15px;
-  margin-left: 10%;
+  margin-left: 2%;
   margin-bottom: 16px;
+}
+
+.batch-upload-button {
+  margin-left: 10px;
+  background-color: #faad14;
 }
 
 .ant-table-cell img {

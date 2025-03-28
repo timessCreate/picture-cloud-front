@@ -23,6 +23,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseInt_ = {
+    code?: number
+    data?: number
+    message?: string
+  }
+
   type BaseResponseListSpaceLevel_ = {
     code?: number
     data?: SpaceLevel[]
@@ -356,8 +362,15 @@ declare namespace API {
     tags?: string[]
   }
 
+  type PictureUploadByBatchRequest = {
+    count?: number
+    namePrefix?: string
+    searchText?: string
+  }
+
   type PictureUploadRequest = {
     id?: number
+    picName?: string
     pictureUrl?: string
     spaceId?: number
   }
@@ -449,6 +462,7 @@ declare namespace API {
 
   type uploadPictureUsingPOSTParams = {
     id?: number
+    picName?: string
     pictureUrl?: string
     spaceId?: number
   }

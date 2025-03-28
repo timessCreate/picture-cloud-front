@@ -1,93 +1,94 @@
 <template>
   <div class="register-container">
-    <a-card title="用户注册" class="register-card">
+    <!-- 动态背景粒子 -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <!-- 注册卡片 -->
+    <div class="register-card glassmorphism">
+      <div class="header">
+        <h1>加入我们</h1>
+        <p>开启您的创作之旅</p>
+      </div>
+
       <a-form
+        class="register-form"
         :model="formState"
-        name="register"
-        :label-col="{ span: 0 }"
-        :wrapper-col="{ span: 24 }"
-        autocomplete="off"
         @finish="onFinish"
         @finishFailed="onFinishFailed"
       >
-        <a-form-item
-          name="userAccount"
-          :rules="[{ required: true, message: '请输入账号！' }]"
-        >
+        <!-- 账号输入 -->
+        <a-form-item name="userAccount">
           <a-input
             v-model:value="formState.userAccount"
             placeholder="请输入账号"
-            :size="'large'"
+            size="large"
+            class="modern-input"
           >
             <template #prefix>
-              <UserOutlined class="site-form-item-icon" />
+              <UserOutlined class="input-icon" />
             </template>
           </a-input>
         </a-form-item>
 
-        <a-form-item
-          name="userPassword"
-          :rules="[
-            { required: true, message: '请输入密码！' },
-            { min: 6, message: '密码长度至少为6位' },
-            { max: 16, message: '密码长度最多为16位' }
-          ]"
-        >
+        <!-- 密码输入 -->
+        <a-form-item name="userPassword">
           <a-input-password
             v-model:value="formState.userPassword"
-            placeholder="请输入密码"
-            :size="'large'"
+            placeholder="请输入密码（6-16位）"
+            size="large"
+            class="modern-input"
           >
             <template #prefix>
-              <LockOutlined class="site-form-item-icon" />
+              <LockOutlined class="input-icon" />
             </template>
           </a-input-password>
         </a-form-item>
 
-        <a-form-item
-          name="checkPassword"
-          :rules="[
-            { required: true, message: '请确认密码！' },
-            { validator: validatePassword }
-          ]"
-        >
+        <!-- 确认密码 -->
+        <a-form-item name="checkPassword">
           <a-input-password
             v-model:value="formState.checkPassword"
             placeholder="请确认密码"
-            :size="'large'"
+            size="large"
+            class="modern-input"
           >
             <template #prefix>
-              <LockOutlined class="site-form-item-icon" />
+              <LockOutlined class="input-icon" />
             </template>
           </a-input-password>
         </a-form-item>
 
-        <a-form-item class="register-options">
-          <div class="flex-between">
-            <router-link to="/user/login" class="login-link">返回登录</router-link>
-          </div>
-        </a-form-item>
+        <!-- 操作区域 -->
+        <div class="action-area">
+          <router-link to="/user/login" class="login-link"> 已有账号？立即登录 </router-link>
+        </div>
 
-        <a-form-item>
-          <a-button
-            type="primary"
-            html-type="submit"
-            :loading="loading"
-            block
-            :size="'large'"
-            class="register-button"
-          >
-            注册
-          </a-button>
-        </a-form-item>
+        <!-- 注册按钮 -->
+        <a-button
+          type="primary"
+          html-type="submit"
+          :loading="loading"
+          block
+          size="large"
+          class="register-button"
+        >
+          <template #icon>
+            <RocketOutlined />
+          </template>
+          立即注册
+        </a-button>
       </a-form>
-    </a-card>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { UserOutlined, LockOutlined } from '@ant-design/icons-vue'
+import { UserOutlined, LockOutlined, RocketOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { userRegisterUsingPost } from '@/api/userController'
@@ -101,7 +102,7 @@ interface FormState {
 const formState = reactive<FormState>({
   userAccount: '',
   userPassword: '',
-  checkPassword: ''
+  checkPassword: '',
 })
 
 const loading = ref(false)
@@ -120,7 +121,7 @@ const onFinish = async (values: FormState) => {
   try {
     const res = await userRegisterUsingPost({
       userAccount: values.userAccount,
-      userPassword: values.userPassword
+      userPassword: values.userPassword,
     })
     if (res.data.code === 0) {
       message.success('注册成功')
@@ -143,95 +144,94 @@ const onFinishFailed = (errorInfo: any) => {
 
 <style scoped>
 .register-container {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
 }
 
 .register-card {
   width: 100%;
-  max-width: 400px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  max-width: 440px;
+  padding: 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+  z-index: 1;
 }
 
-:deep(.site-form-item-icon) {
-  font-size: 18px;
-  color: #bfbfbf;
-  transition: all 0.3s;
-}
-
-:deep(.ant-input-affix-wrapper:hover .site-form-item-icon) {
-  color: #1890ff;
-}
-
-:deep(.ant-input-affix-wrapper-focused .site-form-item-icon) {
-  color: #1890ff;
-}
-
-:deep(.ant-card-head) {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-:deep(.ant-card-head-title) {
-  font-size: 24px;
+.header {
   text-align: center;
-  padding-top: 24px;
+  margin-bottom: 40px;
 }
 
-:deep(.ant-card-body) {
-  padding: 24px 32px 32px;
+.header h1 {
+  font-size: 32px;
+  color: #2d3748;
+  margin-bottom: 8px;
 }
 
-:deep(.ant-input-affix-wrapper) {
-  padding: 8px 11px;
+.header p {
+  color: #718096;
+  font-size: 14px;
+}
+
+.modern-input {
+  border-radius: 8px;
   transition: all 0.3s;
 }
 
-:deep(.ant-input-affix-wrapper:hover) {
-  border-color: #40a9ff;
+.modern-input:hover {
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
 }
 
-.register-button {
-  height: 40px;
+.modern-input:deep(.ant-input) {
+  padding: 12px 16px;
+  height: 48px;
+}
+
+.input-icon {
+  color: #a0aec0;
   font-size: 16px;
-  transition: all 0.3s;
+  margin-right: 8px;
 }
 
-.register-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(24,144,255,0.35);
-}
-
-.ant-form-item:last-child {
-  margin-bottom: 0;
-}
-
-:deep(.ant-input-affix-wrapper) {
-  transform: translateY(0);
-  transition: all 0.3s;
-}
-
-:deep(.ant-input-affix-wrapper:hover),
-:deep(.ant-input-affix-wrapper-focused) {
-  transform: translateY(-1px);
-}
-
-.flex-between {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+.action-area {
+  margin: 16px 0;
+  text-align: center;
 }
 
 .login-link {
-  color: #1890ff;
-  text-decoration: none;
+  color: #667eea;
+  transition: color 0.3s;
 }
 
 .login-link:hover {
-  color: #40a9ff;
+  color: #764ba2;
+}
+
+.register-button {
+  height: 48px;
+  font-size: 16px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+}
+
+.register-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+}
+
+/* 复用登录页面的粒子动画 */
+.particles,
+.particle,
+@keyframes float {
+  /* 与登录页面保持相同动画效果 */
 }
 </style>

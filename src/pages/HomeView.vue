@@ -39,7 +39,7 @@
       </div>
       <a-button
         v-if="selectedCategory"
-        @click="selectedCategory = ''"
+        @click="clearCategory"
         class="clear-button"
         type="primary"
         ghost
@@ -52,28 +52,29 @@
     <!-- 标签栏 -->
     <div class="filter-container tag-container">
       <div class="filter-content">
-        <div class="filter-label">标签：</div>
+        <div class="filter-label">标签（多选）：</div>
         <div class="filter-wrapper">
           <a-tag
             v-for="tag in allTags"
             :key="tag"
-            :color="selectedTag === tag ? '#1890ff' : undefined"
+            :color="selectedTags.includes(tag) ? '#1890ff' : undefined"
             class="filter-tag"
             @click="handleTagClick(tag)"
           >
             {{ tag }}
+            <span v-if="selectedTags.includes(tag)" class="checkmark">✓</span>
           </a-tag>
         </div>
       </div>
       <a-button
-        v-if="selectedTag"
-        @click="selectedTag = ''"
+        v-if="selectedTags.length > 0"
+        @click="selectedTags = []"
         class="clear-button"
         type="primary"
         ghost
       >
         <template #icon><close-outlined /></template>
-        清除标签
+        清除标签（{{ selectedTags.length }}）
       </a-button>
     </div>
 
@@ -81,11 +82,13 @@
     <div class="container">
       <a-spin :spinning="loading">
         <!-- 搜索和筛选结果提示 -->
-        <div class="search-result" v-if="searchText || selectedTag || selectedCategory">
+        <div class="search-result" v-if="searchText || selectedTags.length > 0 || selectedCategory">
           <p>
             {{ total }} 张图片
             <template v-if="selectedCategory"> (分类: {{ selectedCategory }}) </template>
-            <template v-if="selectedTag"> (标签: {{ selectedTag }}) </template>
+            <template v-if="selectedTags.length > 0">
+              (标签: {{ selectedTags.join(', ') }})
+            </template>
             <template v-if="searchText"> (搜索: {{ searchText }}) </template>
           </p>
           <div class="filter-actions">
@@ -95,7 +98,7 @@
 
         <!-- 瀑布流布局 -->
         <div class="waterfall">
-          <div v-for="item in filteredImages" :key="item.id" class="image-item">
+          <div v-for="item in allImages" :key="item.id" class="image-item">
             <div class="image-card" @click="handleImageClick(item)">
               <div class="image-wrapper">
                 <a-image
@@ -139,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { SearchOutlined, CloseOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import {
@@ -157,36 +160,36 @@ const pageSize = ref(12)
 const allImages = ref<PictureVO[]>([])
 const searchText = ref('')
 const searchTimeout = ref<number | null>(null)
-const selectedTag = ref('')
+const selectedTags = ref<string[]>([])
 const allTags = ref<string[]>([])
 const selectedCategory = ref('')
 const allCategories = ref<string[]>([])
 const total = ref<number | null>(null)
 
-const filteredImages = computed(() => {
-  let result = allImages.value
+const fetchImages = async () => {
+  loading.value = true
+  try {
+    const res = await listPictureVoByPageUsingPost({
+      current: current.value,
+      pageSize: pageSize.value,
+      category: selectedCategory.value,
+      tags: selectedTags.value,
+      searchText: searchText.value,
+      sortField: 'createTime',
+      sortOrder: 'descend',
+    })
 
-  // 先按分类筛选
-  if (selectedCategory.value) {
-    result = result.filter((image: PictureVO) => image.category === selectedCategory.value)
+    if (res.data.code === 0 && res.data.data) {
+      allImages.value = res.data.data.records || []
+      total.value = Number(res.data.data.total)
+    }
+  } catch (error) {
+    console.error('获取图片列表出错：', error)
+    message.error('获取图片列表失败')
+  } finally {
+    loading.value = false
   }
-
-  // 再按标签筛选
-  if (selectedTag.value) {
-    result = result.filter((image: PictureVO) => image.tags?.includes(selectedTag.value))
-  }
-
-  // 最后按搜索词筛选
-  if (searchText.value) {
-    const keyword = searchText.value.toLowerCase().trim()
-    result = result.filter(
-      (image: PictureVO) =>
-        image.name?.toLowerCase().includes(keyword) ||
-        image.introduction?.toLowerCase().includes(keyword),
-    )
-  }
-  return result
-})
+}
 
 const handleSearch = () => {
   current.value = 1
@@ -204,34 +207,6 @@ const handleSearchChange = () => {
 const clearSearch = () => {
   searchText.value = ''
   handleSearch()
-}
-
-const fetchImages = async () => {
-  loading.value = true
-  try {
-    const res = await listPictureVoByPageUsingPost({
-      current: current.value,
-      pageSize: pageSize.value,
-      sortField: 'createTime',
-      sortOrder: 'descend',
-    })
-
-    if (res.data.code === 0 && res.data.data) {
-      allImages.value = res.data.data.records || []
-      total.value = Number(res.data.data.total)
-
-      if (searchText.value && filteredImages.value.length === 0) {
-        message.info('未找到相关图片')
-      }
-    } else {
-      message.error('获取图片列表失败：' + res.data.message)
-    }
-  } catch (error) {
-    console.error('获取图片列表出错：', error)
-    message.error('获取图片列表失败')
-  } finally {
-    loading.value = false
-  }
 }
 
 const handlePageChange = (page: number) => {
@@ -272,11 +247,18 @@ const fetchCategoriesAndTags = async () => {
 }
 
 const handleTagClick = (tag: string) => {
-  if (selectedTag.value === tag) {
-    selectedTag.value = ''
+  const index = selectedTags.value.indexOf(tag)
+  if (index > -1) {
+    selectedTags.value.splice(index, 1)
   } else {
-    selectedTag.value = tag
+    if (selectedTags.value.length < 5) {
+      selectedTags.value.push(tag)
+    } else {
+      message.warning('最多选择5个标签')
+    }
   }
+  current.value = 1
+  fetchImages()
 }
 
 const handleCategoryClick = (category: string) => {
@@ -285,6 +267,14 @@ const handleCategoryClick = (category: string) => {
   } else {
     selectedCategory.value = category
   }
+  current.value = 1
+  fetchImages()
+}
+
+const clearCategory = () => {
+  selectedCategory.value = ''
+  current.value = 1
+  fetchImages()
 }
 
 const handleImageClick = (item: PictureVO) => {
@@ -292,6 +282,11 @@ const handleImageClick = (item: PictureVO) => {
     path: `/picture/${item.id}`,
   })
 }
+
+watch([selectedCategory, selectedTags, searchText], () => {
+  current.value = 1
+  fetchImages()
+})
 
 onMounted(() => {
   fetchCategoriesAndTags()
@@ -500,7 +495,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: -35px;
+  margin-top: -18px;
   margin-bottom: 15px;
   border: 1px solid rgba(209, 213, 219, 0.3);
 }
@@ -514,6 +509,7 @@ onMounted(() => {
 .filter-label {
   font-size: 14px;
   font-weight: 500;
+  background: rgba(255, 255, 255, 0.95);
   color: #666;
   margin-right: 16px;
   white-space: nowrap;
@@ -527,51 +523,29 @@ onMounted(() => {
 }
 
 .filter-tag {
+  position: relative;
   cursor: pointer;
-  user-select: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 8px;
-  border: 1px solid transparent;
-  margin: 0;
-  font-size: 13px;
-  padding: 4px 12px;
-  height: auto;
-  line-height: 1.4;
+  transition: all 0.2s;
+  padding-right: 24px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
 }
 
-.filter-tag[style*='#1890ff'] {
-  border-color: rgba(24, 144, 255, 0.2);
-  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.1);
-}
-
-.filter-actions {
-  display: flex;
-  gap: 8px;
+.checkmark {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: white;
 }
 
 .clear-button {
-  padding: 4px 12px;
+  flex-shrink: 0;
   margin-left: 16px;
-  height: 32px;
-  font-size: 14px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background-color: #fff;
-  border-color: #ff4d4f;
-  color: #ff4d4f;
-  transition: all 0.3s;
-}
-
-.clear-button:hover {
-  color: #fff;
-  background-color: #ff4d4f;
-  border-color: #ff4d4f;
-}
-
-.clear-button :deep(.anticon) {
-  font-size: 12px;
 }
 
 /* 响应式调整 */

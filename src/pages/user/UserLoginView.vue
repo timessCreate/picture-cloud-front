@@ -1,73 +1,85 @@
 <template>
   <div class="login-container">
-    <a-card title="用户登录" class="login-card">
-      <a-form
-        :model="formState"
-        name="login"
-        :label-col="{ span: 0 }"
-        :wrapper-col="{ span: 24 }"
-        autocomplete="off"
-        @finish="onFinish"
-        @finishFailed="onFinishFailed"
-      >
-        <a-form-item
-          name="userAccount"
-          :rules="[{ required: true, message: '请输入账号！' }]"
-        >
+    <!-- 动态背景粒子 -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <!-- 登录卡片 -->
+    <div class="login-card glassmorphism">
+      <div class="header">
+        <h1>欢迎回来</h1>
+        <p>开启您的视觉之旅</p>
+      </div>
+
+      <a-form class="login-form" :model="formState" @finish="onFinish">
+        <!-- 账号输入 -->
+        <a-form-item name="userAccount">
           <a-input
             v-model:value="formState.userAccount"
             placeholder="请输入账号"
-            :size="'large'"
+            size="large"
+            class="modern-input"
           >
             <template #prefix>
-              <UserOutlined class="site-form-item-icon" />
+              <UserOutlined class="input-icon" />
             </template>
           </a-input>
         </a-form-item>
 
-        <a-form-item
-          name="userPassword"
-          :rules="[{ required: true, message: '请输入密码！' }, { min: 6, message: '密码长度至少为6位' }, { max: 16, message: '密码长度最多为16位' }]"
-        >
+        <!-- 密码输入 -->
+        <a-form-item name="userPassword">
           <a-input-password
             v-model:value="formState.userPassword"
             placeholder="请输入密码"
-            :size="'large'"
+            size="large"
+            class="modern-input"
           >
             <template #prefix>
-              <LockOutlined class="site-form-item-icon" />
+              <LockOutlined class="input-icon" />
             </template>
           </a-input-password>
         </a-form-item>
 
-        <a-form-item name="remember" class="remember-register">
-          <div class="flex-between">
-            <a-checkbox v-model:checked="formState.remember">记住我</a-checkbox>
-            <router-link to="/user/register" class="register-link">去注册</router-link>
-          </div>
-        </a-form-item>
+        <!-- 操作区域 -->
+        <div class="action-area">
+          <a-checkbox v-model:checked="formState.remember">
+            <span class="remember-text">记住我</span>
+          </a-checkbox>
+          <router-link to="/user/register" class="register-link"> 立即注册 </router-link>
+        </div>
 
-        <a-form-item>
-          <a-button
-            type="primary"
-            html-type="submit"
-            :loading="loading"
-            block
-            :size="'large'"
-            class="login-button"
-          >
-            登录
-          </a-button>
-
-        </a-form-item>
+        <!-- 登录按钮 -->
+        <a-button
+          type="primary"
+          html-type="submit"
+          :loading="loading"
+          block
+          size="large"
+          class="login-button"
+        >
+          <template #icon>
+            <RightOutlined />
+          </template>
+          立即登录
+        </a-button>
       </a-form>
-    </a-card>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { UserOutlined, LockOutlined } from '@ant-design/icons-vue'
+import {
+  UserOutlined,
+  LockOutlined,
+  RightOutlined,
+  WechatOutlined,
+  AlipayOutlined,
+  GithubOutlined,
+} from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { userLoginUsingPost } from '@/api/userController'
@@ -120,97 +132,164 @@ const onFinishFailed = (errorInfo: any) => {
 
 <style scoped>
 .login-container {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: float 15s infinite linear;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-100vh) rotate(360deg);
+  }
 }
 
 .login-card {
   width: 100%;
-  max-width: 400px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  max-width: 440px;
+  padding: 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+  z-index: 1;
 }
 
-:deep(.site-form-item-icon) {
-  font-size: 18px;
-  color: #bfbfbf;
-  transition: all 0.3s;
-}
-
-:deep(.ant-input-affix-wrapper:hover .site-form-item-icon) {
-  color: #1890ff;
-}
-
-:deep(.ant-input-affix-wrapper-focused .site-form-item-icon) {
-  color: #1890ff;
-}
-
-:deep(.ant-card-head) {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-:deep(.ant-card-head-title) {
-  font-size: 24px;
+.header {
   text-align: center;
-  padding-top: 24px;
+  margin-bottom: 40px;
 }
 
-:deep(.ant-card-body) {
-  padding: 24px 32px 32px;
+.header h1 {
+  font-size: 32px;
+  color: #2d3748;
+  margin-bottom: 8px;
 }
 
-:deep(.ant-input-affix-wrapper) {
-  padding: 8px 11px;
+.header p {
+  color: #718096;
+  font-size: 14px;
+}
+
+.modern-input {
+  border-radius: 8px;
   transition: all 0.3s;
 }
 
-:deep(.ant-input-affix-wrapper:hover) {
-  border-color: #40a9ff;
+.modern-input:hover {
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
 }
 
-.login-button {
-  height: 40px;
+.modern-input:deep(.ant-input) {
+  padding: 12px 16px;
+  height: 48px;
+}
+
+.input-icon {
+  color: #a0aec0;
   font-size: 16px;
-  transition: all 0.3s;
+  margin-right: 8px;
 }
 
-.login-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(24,144,255,0.35);
-}
-
-.ant-form-item:last-child {
-  margin-bottom: 0;
-}
-
-/* 添加输入框动画效果 */
-:deep(.ant-input-affix-wrapper) {
-  transform: translateY(0);
-  transition: all 0.3s;
-}
-
-:deep(.ant-input-affix-wrapper:hover),
-:deep(.ant-input-affix-wrapper-focused) {
-  transform: translateY(-1px);
-}
-
-.flex-between {
+.action-area {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
+  margin: 16px 0;
+}
+
+.remember-text {
+  color: #4a5568;
 }
 
 .register-link {
-  color: #1890ff;
-  text-decoration: none;
+  color: #667eea;
+  transition: color 0.3s;
 }
 
 .register-link:hover {
-  color: #40a9ff;
+  color: #764ba2;
+}
+
+.login-button {
+  height: 48px;
+  font-size: 16px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+}
+
+.social-login {
+  margin-top: 32px;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 24px 0;
+}
+
+.divider-text {
+  display: inline-block;
+  padding: 0 12px;
+  background: white;
+  color: #718096;
+  font-size: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.divider:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e2e8f0;
+  z-index: 0;
+}
+
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.icon {
+  font-size: 24px;
+  color: #718096;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.icon:hover {
+  color: #667eea;
+  transform: translateY(-2px);
 }
 </style>
-

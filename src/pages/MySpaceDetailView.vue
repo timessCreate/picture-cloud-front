@@ -2,42 +2,27 @@
   <div class="space-detail-container">
     <div class="container">
       <a-spin :spinning="loading">
-        <!-- 空状态提示 -->
         <a-empty
           v-if="pictures.length === 0 && !loading"
           description="暂无图片，快去上传吧！"
           class="empty-tip"
         >
-          <!-- <template #image>
-            <img src="@/assets/empty-image.png" class="empty-image" />
-          </template> -->
           <a-button type="primary" @click="handleUpload">立即上传</a-button>
         </a-empty>
 
-        <!-- 瀑布流布局 -->
-        <div v-else class="waterfall">
-          <div v-for="item in pictures" :key="item.id" class="image-item">
-            <div class="image-card" @click="handleImageClick(item)">
-              <div class="image-wrapper">
-                <a-image
-                  :src="item.url"
-                  :preview="{
-                    src: item.url,
-                    maskClassName: 'preview-mask',
-                  }"
-                />
-              </div>
-              <div class="image-info">
-                <h3 class="image-title">{{ item.name }}</h3>
-                <p class="image-desc" v-if="item.introduction">{{ item.introduction }}</p>
-                <div class="tags">
-                  <a-tag v-for="tag in item.tags" :key="tag" color="blue">
-                    {{ tag }}
-                  </a-tag>
+        <!-- 恢复原始瀑布流布局 -->
+        <div v-else class="image-grid">
+          <div class="waterfall">
+            <div v-for="item in pictures" :key="item.id" class="image-item">
+              <div class="image-card" @click="handleImageClick(item)">
+                <div class="image-wrapper">
+                  <a-image :src="item.url" :preview="false" />
                 </div>
-                <div class="image-meta">
-                  <span v-if="formatDate(item.createTime)">{{ formatDate(item.createTime) }}</span>
-                  <span class="category">{{ item.category }}</span>
+                <div class="card-footer">
+                  <h3 class="title">{{ item.name }}</h3>
+                  <div class="footer-meta">
+                    <span class="time">{{ formatDate(item.createTime || '') }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -201,17 +186,8 @@ watch(
 }
 
 /* 瀑布流布局 */
-.waterfall {
-  column-count: 5; /* 默认5列 */
-  column-gap: 24px;
+.image-grid {
   padding: 16px 0;
-}
-
-.image-item {
-  break-inside: avoid;
-  margin-bottom: 24px;
-  transition: transform 0.3s;
-  page-break-inside: avoid; /* 兼容旧版浏览器 */
 }
 
 .image-card {
@@ -219,34 +195,9 @@ watch(
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
 }
 
-/* 响应式调整 */
-@media (max-width: 1600px) {
-  .waterfall {
-    column-count: 4;
-  }
-}
-
-@media (max-width: 1200px) {
-  .waterfall {
-    column-count: 3;
-  }
-}
-
-@media (max-width: 992px) {
-  .waterfall {
-    column-count: 2;
-  }
-}
-
-@media (max-width: 576px) {
-  .waterfall {
-    column-count: 1;
-  }
-}
-
-/* 保持原有其他样式不变 */
 .image-wrapper {
   position: relative;
   padding-top: 100%; /* 保持1:1宽高比 */
@@ -285,5 +236,86 @@ watch(
   color: #666;
   display: flex;
   justify-content: space-between;
+}
+
+.card-footer {
+  padding: 12px;
+}
+
+.title {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.footer-meta {
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.username {
+  margin-left: 8px;
+}
+
+.time {
+  margin-left: 8px;
+}
+
+.image-meta-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.meta-content {
+  text-align: center;
+}
+
+.stats {
+  margin-top: 8px;
+}
+
+.hover-zoom {
+  transition: transform 0.3s;
+}
+
+.hover-zoom:hover {
+  transform: scale(1.05);
+}
+
+/* 响应式调整 */
+@media (max-width: 1600px) {
+  .image-grid {
+    column-count: 4;
+  }
+}
+
+@media (max-width: 1200px) {
+  .image-grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 992px) {
+  .image-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 576px) {
+  .image-grid {
+    column-count: 1;
+  }
 }
 </style>

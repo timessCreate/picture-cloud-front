@@ -34,9 +34,19 @@ const props = defineProps<Props>()
 const handleUpload = async ({ file }: any) => {
   loading.value = true
   try {
-    const params = props.picture ? { id: props.picture.id } : {}
-    //响应数据
-    const res = await uploadPictureUsingPost(params, {}, file)
+    // 构造符合接口要求的参数
+    const params = {
+      // 使用正确的参数名（根据后端接口定义）
+      id: props.picture?.id,
+      // 添加其他必要参数...
+    }
+
+    // 调整调用方式（参数顺序对应接口定义）
+    const res = await uploadPictureUsingPost(
+      params, // 第一个参数对应params
+      {}, // 第二个参数对应body（保留空对象）
+      file, // 第三个参数对应文件
+    )
     console.log(res)
     if (res.data.code === 0 && res.data.data) {
       message.success('上传成功')
